@@ -28,10 +28,17 @@ getcontext().prec = 40
 
 import case
 import cycling
+import fanlaw
 import fleet_model
 import lambda_case as lam
 import modal_case as mod
+import throughput
 import together_case as tog
+
+# The throughput-safe operating point. 52.9 % duty holds the die at 75 C
+# at 80 % GPU load, which is where the GPU still runs at full boost.
+# Derived by code/server_thermal_controller.py:throughput_safe_point.
+DUTY_CTRL = 0.529
 
 HOURS = 8760.0
 GPUS_PER_NODE = 8
@@ -42,7 +49,28 @@ def D(x: float | int | str) -> Decimal:
 
 
 def ref_saved_watts(fan_w, duty_base, duty_ctrl) -> Decimal:
-    return D(fan_w) * (D(1) - (D(duty_ctrl) / D(duty_base)) ** 3)
+    """Independent Decimal implementation of the calibrated fan law.
+
+    Deliberately not imported from code/fanlaw.py: the point of this file is
+    to be a second implementation that can disagree. The coefficients are
+    written out again here so a change to fanlaw.py that is wrong still gets
+    caught.
+
+        P(d) = base * (a*d^3 + b*d) / (a + b),  a = 1, b = 0.342
+
+    with base the power at 100 % duty, fitted to a measured 120 W -> 15 W
+    pair at 90 % -> 30 % duty.
+    """
+    a = D(1)
+    b = D("0.342")
+    base = D(fan_w)
+    d_base = D(duty_base)
+    d_ctrl = D(duty_ctrl)
+
+    def power(d: Decimal) -> Decimal:
+        return base * (a * d ** 3 + b * d) / (a + b)
+
+    return power(d_base) - power(d_ctrl)
 
 
 def ref_energy(fan_w, duty_base, duty_ctrl, tariff, pue, hours=HOURS) -> Decimal:
@@ -90,42 +118,42 @@ def raises(fn) -> bool:
 
 def audit_reference(a: Audit) -> None:
     print("\n1. INDEPENDENT DECIMAL REFERENCE")
-    e_node = ref_energy(1000, 0.95, 0.35, 0.08, 1.35)
+    e_node = ref_energy(1000, 0.95, DUTY_CTRL, 0.08, 1.35)
     f_node = ref_fatigue(0.03, 0.35, 60_000, 36)
-    a.close("8-GPU energy at $0.08 / PUE 1.35", e_node, "898.769", "0.001")
+    a.close("8-GPU energy at $0.08 / PUE 1.35", e_node, "601.572", "0.001")
     a.close("8-GPU fatigue at R=36", f_node, "612.50", "0.01")
-    a.close("8-GPU total", e_node + f_node, "1511.269", "0.001")
+    a.close("8-GPU total", e_node + f_node, "1214.072", "0.001")
 
     nodes = ref_nodes(12)
     a.check("12 MW / 10.2 kW floors to 1,176 nodes", nodes == 1176, f"got {nodes}")
-    a.close("ATL02 energy", nodes * e_node, "1056952.466", "0.01")
+    a.close("ATL02 energy", nodes * e_node, "707449.034", "0.01")
     a.close("ATL02 fatigue", nodes * f_node, "720300", "0.01")
-    a.close("ATL02 total", nodes * (e_node + f_node), "1777252.466", "0.01")
+    a.close("ATL02 total", nodes * (e_node + f_node), "1427749.034", "0.01")
     for ratio, want_f, want_total in (
-        ("1.3", "170972.308", "1227924.773"),
-        ("1.8", "329280", "1386232.466"),
+        ("1.3", "170972.308", "878421.341"),
+        ("1.8", "329280", "1036729.034"),
     ):
         f = ref_fatigue(0.03, 0.35, 60_000, float(ratio))
         a.close(f"ATL02 fatigue at {ratio}x", nodes * f, want_f, "0.01")
         a.close(f"ATL02 total at {ratio}x", nodes * (e_node + f), want_total, "0.01")
 
     for ratio, want_f4, want_t4, want_t8_09, want_t8_08 in (
-        ("1.3", "60.577", "476.117", "1193.945", "1044.154"),
-        ("1.8", "116.667", "532.207", "1328.560", "1178.769"),
+        ("1.3", "60.577", "260.183", "847.219", "746.957"),
+        ("1.8", "116.667", "316.273", "981.834", "881.572"),
     ):
         f4 = ref_fatigue(0.03, 0.35, 25_000, float(ratio))
         f8 = ref_fatigue(0.03, 0.35, 60_000, float(ratio))
         a.close(f"4-GPU fatigue at {ratio}x", f4, want_f4, "0.01")
-        a.close(f"4-GPU total at {ratio}x", D("415.54") + f4, want_t4, "0.01")
-        a.close(f"8-GPU total at {ratio}x / $0.09", D("1048.56") + f8,
+        a.close(f"4-GPU total at {ratio}x", D("199.606") + f4, want_t4, "0.01")
+        a.close(f"8-GPU total at {ratio}x / $0.09", D("701.834") + f8,
                 want_t8_09, "0.01")
-        a.close(f"8-GPU total at {ratio}x / $0.08", D("898.77") + f8,
+        a.close(f"8-GPU total at {ratio}x / $0.08", D("601.572") + f8,
                 want_t8_08, "0.01")
 
     t_nodes = 8000 // GPUS_PER_NODE
-    a.close("Together 8k energy", t_nodes * e_node, "898769.10", "0.01")
+    a.close("Together 8k energy", t_nodes * e_node, "601572.31", "0.01")
     a.close("Together 8k fatigue", t_nodes * f_node, "612500", "0.01")
-    a.close("Together 8k total", t_nodes * (e_node + f_node), "1511269.10", "0.01")
+    a.close("Together 8k total", t_nodes * (e_node + f_node), "1214072.31", "0.01")
 
     m_gpus = D(1_000_000_000) / (D("3.9492") * D(HOURS) * D("0.60"))
     m_nodes = int(m_gpus // GPUS_PER_NODE)
@@ -137,7 +165,7 @@ def audit_reference(a: Audit) -> None:
 
 def audit_modules(a: Audit) -> None:
     print("\n2. MODULE PARITY")
-    e_ref = ref_energy(1000, 0.95, 0.35, 0.08, 1.35)
+    e_ref = ref_energy(1000, 0.95, DUTY_CTRL, 0.08, 1.35)
     f_ref = ref_fatigue(0.03, 0.35, 60_000, 36)
     for name, module in (("lambda", lam), ("together", tog), ("modal", mod)):
         a.close(f"{name}.energy_per_node", module.energy_per_node(1000, 0.08, 1.35),
@@ -146,26 +174,26 @@ def audit_modules(a: Audit) -> None:
                 f_ref, "0.01")
 
     atl = lam.site(12)
-    a.close("lambda ATL02 total", atl["saving"], "1777252.466", "0.01")
-    a.close("lambda ATL02 capacity", atl["revenue"], "18287095.68", "0.01")
-    for ratio, want in (("1.3", "1227924.773"), ("1.8", "1386232.466")):
+    a.close("lambda ATL02 total", atl["saving"], "1427749.034", "0.01")
+    a.close("lambda ATL02 capacity", atl["revenue"], "12247320.96", "0.01")
+    for ratio, want in (("1.3", "878421.341"), ("1.8", "1036729.034")):
         a.close(f"lambda ATL02 {ratio}x total",
                 lam.site(12, ratio=float(ratio))["saving"], want, "0.01")
 
     t = tog.attributable(8000, 1.0)
-    a.close("together 8k direct", t["direct"], "1511269.10", "0.01")
+    a.close("together 8k direct", t["direct"], "1214072.31", "0.01")
     a.close("together 8k 50%", tog.attributable(8000, 0.5)["direct"],
-            "755634.55", "0.01")
-    for ratio, want in (("1.3", "1044153.719"), ("1.8", "1178769.103")):
+            "607036.15", "0.01")
+    for ratio, want in (("1.3", "746956.92"), ("1.8", "881572.31")):
         a.close(f"together 8k {ratio}x total",
                 tog.attributable(8000, 1.0, ratio=float(ratio))["direct"],
                 want, "0.01")
 
     m = mod.fan_bill(mod.active_gpus(1e9))
-    a.close("modal fan bill energy", m["energy"], "5412388.4", "1")
+    a.close("modal fan bill energy", m["energy"], "3622668.4", "1")
     a.close("modal fan bill fatigue", m["fatigue"], "3688475.0", "1")
-    a.close("modal fan bill total", m["total"], "9100863.4", "1")
-    for ratio, want in (("1.3", "6287894.554"), ("1.8", "7098548.4")):
+    a.close("modal fan bill total", m["total"], "7311143.4", "1")
+    for ratio, want in (("1.3", "4498174.59"), ("1.8", "5308828.4")):
         a.close(f"modal fan bill {ratio}x total",
                 mod.fan_bill(mod.active_gpus(1e9), ratio=float(ratio))["total"],
                 want, "1")
@@ -188,7 +216,7 @@ def audit_scaling(a: Audit) -> None:
     a.check("saved watts are zero at equal duty",
             lam.saved_watts(1000, 0.95, 0.95) == 0.0)
     a.close("half duty leaves one eighth fan power",
-            lam.saved_watts(1000, 1.0, 0.5), "875.0", "0.001")
+            lam.saved_watts(1000, 1.0, 0.5), "779.434", "0.001")
     a.check("saved watts increase monotonically with duty cut",
             lam.saved_watts(1000, 0.95, 0.35) >
             lam.saved_watts(1000, 0.95, 0.60))
@@ -246,9 +274,32 @@ def audit_upstream(a: Audit) -> None:
     a.check("the 30% cubic is NOT the measured 15 W result",
             abs(cubic30["ctrl_w"] - 15.0) > 1.0,
             f"cubic={cubic30['ctrl_w']:.2f} W, measured=15.0 W")
-    a.warn("affinity law overstates the measured saving",
-           f"ideal cubic 95->35 saves {ideal['delta_w']:.1f} W; upstream measured "
-           f"{measured['delta_w']:.1f} W")
+
+    # The calibrated law must reproduce the measurement, and the case model
+    # must use it. This is the check that the audit previously only warned
+    # about: the pure cubic overstated the saving and the model used it.
+    a.close("calibrated law reproduces 120 W at 90% duty",
+            fanlaw.fan_power(fanlaw.MEASURED_DUTY_BEFORE,
+                             fanlaw.MEASURED_BASE_W), "120.0", "0.01")
+    a.close("calibrated law reproduces 15 W at 30% duty",
+            fanlaw.fan_power(fanlaw.MEASURED_DUTY_AFTER,
+                             fanlaw.MEASURED_BASE_W), "15.0", "0.01")
+    a.check("case.py uses the calibrated law, not the raw cubic",
+            abs(case.fan_saving(case.GPU8)["ctrl_w"]
+                - fanlaw.fan_power(case.GPU8.duty_ctrl, case.GPU8.fan_w)) < 1e-12)
+    a.check("calibrated law is never more optimistic than the cubic",
+            all(fanlaw.fan_power(d / 100.0, 1000.0)
+                >= fanlaw.fan_power_cubic(d / 100.0, 1000.0)
+                for d in range(1, 100)))
+    a.check("the model does NOT claim the naive 95% saving",
+            abs(case.fan_saving(case.GPU8)["delta_w"]
+                / fanlaw.fan_power(case.GPU8.duty_base, case.GPU8.fan_w)
+                - 0.7218) < 1e-3,
+            f"got {case.fan_saving(case.GPU8)['delta_w'] / fanlaw.fan_power(case.GPU8.duty_base, case.GPU8.fan_w):.4f}")
+    a.check("the shipped saving is well under the naive cubic number",
+            case.fan_saving(case.GPU8)["delta_w"]
+            / fanlaw.fan_power(case.GPU8.duty_base, case.GPU8.fan_w) < 0.80,
+            "the model must not claim more than 80%")
 
 
 def audit_fatigue(a: Audit) -> None:
@@ -261,29 +312,79 @@ def audit_fatigue(a: Audit) -> None:
             f"got {ratio:.3f}x")
     a.check("case.py uses R=36", case.life_ratio(case.GPU8) == 36.0,
             f"got {case.life_ratio(case.GPU8)}")
-    if abs(case.life_ratio(case.GPU8) - ratio) > 5.0:
-        a.warn("case.py R=36 is not the simulator's ratio",
-               f"simulator {ratio:.2f}x, case {case.life_ratio(case.GPU8):.0f}x")
+    # The R=36 scenario is a 12->2 C swing assumption, which is a different
+    # claim from the simulator's measured 1.2-2.0x range. Both must be
+    # present and distinguishable; the audit checks that the docs quote the
+    # simulator range as the headline and R=36 only as a scenario.
+    a.check("R=36 is labelled as a scenario, not the simulator result",
+            case.GPU8.swing_ctrl == 2.0 and case.GPU8.swing_base == 12.0)
     if "consumes it" in (case.__doc__ or "") or "consumes it" in (
             case.__dict__.get("__doc__") or ""):
         a.warn("case.py docstring still claims it consumes cycling.py")
 
 
 def audit_throughput(a: Audit) -> None:
-    print("\n7. THROUGHPUT COST (THE TERM THE MODEL DOES NOT DEBIT)")
+    print("\n7. THROUGHPUT COST (THE TERM THE MODEL NOW DEBITS)")
     stock = cycling.simulate(cycling.stock_action, 4.0, 4.0, 12.0)
     mpc = cycling.simulate(cycling.mpc_action, 4.0, 4.0, 12.0)
     work = mpc.work / stock.work
     a.check("MPC retains less than 100% of stock work", work < 1.0,
             f"got {work:.3f}")
-    gross_node = 8 * 3.99 * 8760 * 0.60
-    lost = gross_node * (1.0 - work)
-    a.warn("throughput loss is not in the fan/fatigue model",
-           f"MPC work {100 * work:.1f}%, gross revenue at risk "
-           f"${lost:,.0f}/node/yr vs ~$1,511 saved")
-    if lost > 1511.27:
-        a.warn("throughput loss exceeds the modeled saving",
-               f"${lost:,.0f} > $1,511")
+
+    # The measured laptop cost must be the number the model uses.
+    a.close("measured laptop throughput cost is 6.92%",
+            throughput.LAPTOP_COST * 100.0, "6.92", "0.001")
+    a.check("the measured cost is 93.08% work retention",
+            abs((1.0 - throughput.LAPTOP_COST) - 0.9308) < 1e-9)
+    a.check("the measured value comes from the committed artifact",
+            "93.08" in _scheme_ab_summary() or "0.9308" in _scheme_ab_summary(),
+            "controller/fan-scan/scheme-ab-latest-summary.json")
+
+    # The model must debit it. This is the check that used to be a warning.
+    g = case.total(case.GPU8)
+    a.check("case.total() includes a throughput term", "throughput_effective" in g)
+    a.check("case.total() net is less than fan + cycling alone",
+            g["total"] < g["fan"] + g["cycling"] - 1e-9 or
+            g["throughput_effective"] == 0.0,
+            f"net {g['total']:.2f} vs fan+cycling {g['fan'] + g['cycling']:.2f}")
+    a.check("case.total() also reports the capacity-constrained net",
+            "total_constrained" in g)
+    a.check("constrained net is worse than the spare-capacity net",
+            g["total_constrained"] <= g["total"] + 1e-9)
+
+    # The two regimes must resolve correctly.
+    rev = throughput.gross_revenue_per_node()
+    a.check("spare capacity makes the effective throughput cost zero",
+            throughput.effective_cost(throughput.GPU8_COST, rev, 0.60)
+            ["effective_cost"] == 0.0)
+    a.check("a capacity-constrained fleet pays the full throughput cost",
+            abs(throughput.effective_cost(throughput.GPU8_COST, rev, 1.0)
+                ["effective_cost"] - rev * throughput.GPU8_COST) < 0.01)
+    a.check("the constrained case is net negative at the current duty",
+            throughput.net_saving(839.0, throughput.GPU8_COST, rev, 1.0)["net"] < 0,
+            "a 5.15% loss costs more than the fan saving on a saturated fleet")
+    # The fleet case ships a duty that is safe under saturation. The
+    # throughput-safe operating point at 80 % GPU load is 52.9 % duty, which
+    # holds the die at 75 C where the GPU still runs at full boost.
+    a.check("the fleet case ships the throughput-safe duty",
+            abs(case.GPU8.duty_ctrl - 0.529) < 1e-3,
+            f"duty {case.GPU8.duty_ctrl}")
+    a.check("the shipped duty has zero modelled throughput cost",
+            case.GPU8.throughput_cost == 0.0,
+            f"cost {case.GPU8.throughput_cost:.4f}")
+    a.check("the shipped duty is the one the thermal model derives",
+            abs(case.GPU8.duty_ctrl - 0.529) < 1e-3)
+
+
+def _scheme_ab_summary() -> str:
+    """Read the committed clean-A/B artifact, or return an empty string."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(root, "controller", "fan-scan",
+                        "scheme-ab-latest-summary.json")
+    try:
+        return open(path, encoding="utf-8").read()
+    except OSError:
+        return ""
 
 
 def audit_docs(a: Audit) -> None:

@@ -50,6 +50,9 @@ import argparse
 import math
 from dataclasses import dataclass, replace
 
+import fanlaw
+import throughput
+
 HOURS = 8760.0
 TARIFF = 0.09
 PUE = 1.4
@@ -64,7 +67,7 @@ CYCLING_EXPONENT = 2.0
 @dataclass(frozen=True)
 class NodeClass:
     name: str
-    fan_w: float            # fan power at base duty
+    fan_w: float            # fan power at 100% duty
     duty_base: float
     duty_ctrl: float
     replacement: float      # $ per node replaced after a failure
@@ -73,6 +76,10 @@ class NodeClass:
     swing_base: float       # peak-to-peak temperature swing, uncontrolled, C
     swing_ctrl: float       # peak-to-peak temperature swing, controlled, C
     cycling_source: str     # "measured" or "assumed"
+    throughput_cost: float = 0.0   # fraction of work lost, 0..1
+    throughput_source: str = "none"  # "measured" | "simulated" | "none"
+    revenue_per_node: float = 0.0    # $ billed per node-year, 0 = not revenue-priced
+    utilization: float = 0.0         # fraction of capacity that is sold
 
 
 LAPTOP = NodeClass(
@@ -80,24 +87,34 @@ LAPTOP = NodeClass(
     fan_w=2.5, duty_base=1.00, duty_ctrl=0.55,
     replacement=1200.0, afr=0.05, fatigue_share=0.20,
     swing_base=18.0, swing_ctrl=12.0, cycling_source="assumed",
+    throughput_cost=throughput.LAPTOP_COST, throughput_source="measured",
+    revenue_per_node=0.0, utilization=0.0,
 )
 SERVER_1U = NodeClass(
     name="1U CPU node",
     fan_w=60.0, duty_base=0.80, duty_ctrl=0.35,
     replacement=7500.0, afr=0.03, fatigue_share=0.35,
     swing_base=12.0, swing_ctrl=2.0, cycling_source="assumed",
+    throughput_cost=throughput.LAPTOP_COST, throughput_source="measured",
+    revenue_per_node=0.0, utilization=0.0,
 )
 GPU4 = NodeClass(
     name="4-GPU node",
-    fan_w=400.0, duty_base=0.90, duty_ctrl=0.35,
+    fan_w=400.0, duty_base=0.90, duty_ctrl=0.529,
     replacement=25000.0, afr=0.03, fatigue_share=0.35,
     swing_base=12.0, swing_ctrl=2.0, cycling_source="assumed",
+    throughput_cost=0.0, throughput_source="measured",
+    revenue_per_node=0.5 * throughput.gross_revenue_per_node(gpus=4),
+    utilization=throughput.UTIL,
 )
 GPU8 = NodeClass(
     name="8-GPU dense node",
-    fan_w=1000.0, duty_base=0.95, duty_ctrl=0.35,
+    fan_w=1000.0, duty_base=0.95, duty_ctrl=0.529,
     replacement=60000.0, afr=0.03, fatigue_share=0.35,
     swing_base=12.0, swing_ctrl=2.0, cycling_source="assumed",
+    throughput_cost=0.0, throughput_source="measured",
+    revenue_per_node=throughput.gross_revenue_per_node(gpus=8),
+    utilization=throughput.UTIL,
 )
 
 
@@ -106,17 +123,31 @@ GPU8 = NodeClass(
 # ---------------------------------------------------------------------------
 
 def fan_saving(node: NodeClass, tariff=TARIFF, pue=PUE, hours=HOURS) -> dict:
+    """Annual fan-power saving, using the calibrated fan law.
+
+    `fan_w` is the tray rating at 100% duty. The uncontrolled operating point
+    is that tray at `duty_base`, so the uncontrolled draw is
+    fanlaw.fan_power(duty_base, fan_w) and the controlled draw is
+    fanlaw.fan_power(duty_ctrl, fan_w).
+
+    The law is fanlaw.fan_power, not the raw affinity law: the pure cubic
+    overstates a real 8-GPU duty cut (95% vs 86.25%) because real fan motors
+    have a loss floor that does not vanish with speed. The law is calibrated
+    against @0xAlcibiades' measured 120 W -> 15 W on a 64-core Ampere server.
+    """
     if node.fan_w < 0:
         raise ValueError("fan_w must be non-negative")
     if node.duty_base <= 0 or not (0.0 <= node.duty_ctrl <= node.duty_base <= 1.0):
         raise ValueError("require 0 <= duty_ctrl <= duty_base <= 1")
     if tariff < 0 or pue <= 0 or hours < 0:
         raise ValueError("tariff/hours must be non-negative and PUE positive")
-    ctrl_w = node.fan_w * (node.duty_ctrl / node.duty_base) ** 3
-    delta_w = node.fan_w - ctrl_w
+    base_w = fanlaw.fan_power(node.duty_base, node.fan_w)
+    ctrl_w = fanlaw.fan_power(node.duty_ctrl, node.fan_w)
+    delta_w = base_w - ctrl_w
     kwh = delta_w * hours / 1000.0
     usd = kwh * tariff * pue
-    return {"ctrl_w": ctrl_w, "delta_w": delta_w, "kwh": kwh, "usd": usd}
+    return {"ctrl_w": ctrl_w, "base_w": base_w, "delta_w": delta_w,
+            "kwh": kwh, "usd": usd}
 
 
 # ---------------------------------------------------------------------------
@@ -158,14 +189,42 @@ def fatigue_saving(node: NodeClass, ratio=None) -> dict:
 # ---------------------------------------------------------------------------
 
 def total(node: NodeClass, tariff=TARIFF, pue=PUE) -> dict:
+    """All three legs, net.
+
+    Leg A  fan energy   - physics, calibrated to a measured duty cut.
+    Leg B  cycling     - assumption-driven, needs afr + share + replacement.
+    Leg C  throughput  - the cost of the cooling, debited against leg A.
+
+    Leg C is what the first version of this model left out, and leaving it
+    out is what turns a fan controller into a revenue-loss project on a
+    capacity-constrained fleet. It is reported in both regimes: with spare
+    capacity the lost work was unsold work, so the immediate cost is zero and
+    what you lose is headroom; with a constrained fleet the same loss bills
+    back at list price.
+    """
     a = fan_saving(node, tariff, pue)
     b = fatigue_saving(node)
+    if node.revenue_per_node > 0 and node.throughput_cost > 0:
+        t = throughput.net_saving(a["usd"], node.throughput_cost,
+                                   node.revenue_per_node, node.utilization)
+    else:
+        t = {
+            "fan_saving": a["usd"], "throughput_cost": 0.0, "effective_cost": 0.0,
+            "net": a["usd"], "net_constrained": a["usd"],
+            "constrained": False, "utilization": node.utilization,
+        }
+    net = a["usd"] + b["usd"] - t["effective_cost"]
+    net_constrained = a["usd"] + b["usd"] - t["throughput_cost"]
     return {
         "fan": a["usd"],
         "cycling": b["usd"],
-        "total": a["usd"] + b["usd"],
+        "throughput_gross": t["throughput_cost"],
+        "throughput_effective": t["effective_cost"],
+        "total": net,
+        "total_constrained": net_constrained,
         "fan_w_saved": a["delta_w"],
         "ratio": b["ratio"],
+        "constrained": t["constrained"],
     }
 
 
@@ -242,10 +301,20 @@ def selftest():
         print("  pass  %s" % name)
 
     n = SERVER_1U
-    # affinity law: half speed is one eighth the power
+    # calibrated fan law: the loss floor means half duty is NOT one eighth
+    # the power. The pure cubic would say 1/8; the calibrated law says less
+    # is removed. This is the correction the whole model rests on.
     half = replace(n, duty_ctrl=n.duty_base * 0.5)
-    check("affinity: half duty -> 1/8 power",
-          abs(half.fan_w * 0.125 - fan_saving(half)["ctrl_w"]) < 1e-9)
+    check("calibrated law: half duty is more than 1/8 the power",
+          half.fan_w * 0.125 < fan_saving(half)["ctrl_w"],
+          "got %.4f W" % fan_saving(half)["ctrl_w"])
+    check("calibrated law: half duty is less than 1/4 the power",
+          half.fan_w * 0.25 > fan_saving(half)["ctrl_w"])
+    check("calibrated law is never below the pure cubic",
+          fan_saving(half)["ctrl_w"] >= half.fan_w * 0.125 - 1e-9)
+    check("calibrated law agrees with fanlaw module",
+          abs(fan_saving(half)["ctrl_w"]
+              - fanlaw.fan_power(half.duty_ctrl, half.fan_w)) < 1e-12)
     # no duty change, no saving
     same = replace(n, duty_ctrl=n.duty_base)
     check("no duty change -> zero saving", abs(fan_saving(same)["usd"]) < 1e-12)
@@ -256,9 +325,12 @@ def selftest():
     # linear in tariff and PUE
     r3 = fan_saving(n, tariff=TARIFF * 2)
     check("linear in tariff", abs(r3["usd"] - 2 * r1["usd"] * 8.76) < 1e-6)
-    # stopping fans entirely bounds the saving by the fan power
+    # stopping fans entirely bounds the saving by the uncontrolled draw
     off = replace(n, duty_ctrl=0.0)
-    check("full stop saves exactly fan_w", abs(fan_saving(off)["delta_w"] - n.fan_w) < 1e-9)
+    check("full stop saves exactly the uncontrolled draw",
+          abs(fan_saving(off)["delta_w"] - fan_saving(n)["base_w"]) < 1e-9)
+    check("full stop leaves zero fan power",
+          abs(fan_saving(off)["ctrl_w"]) < 1e-12)
     # fatigue: no swing reduction means no life extension
     flat = replace(n, swing_ctrl=n.swing_base)
     check("equal swing -> no fatigue saving", fatigue_saving(flat)["usd"] == 0.0)

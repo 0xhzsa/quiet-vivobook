@@ -30,12 +30,14 @@ from __future__ import annotations
 import argparse
 import math
 
+import fanlaw
+
 HOURS = 8760.0
 GPUS_PER_NODE = 8
 NODE_KW = 10.2
 FAN_W = 1000.0
 DUTY_BASE = 0.95
-DUTY_CTRL = 0.35
+DUTY_CTRL = 0.529
 TARIFF = 0.08
 PUE = 1.35
 AFR = 0.03
@@ -50,11 +52,18 @@ PROVIDERS = 13
 
 def saved_watts(fan_w: float, duty_base: float = DUTY_BASE,
                 duty_ctrl: float = DUTY_CTRL) -> float:
+    """Fan watts removed by the duty cut, using the calibrated fan law.
+
+    The pure affinity law (duty_ctrl/duty_base)^3 overstates this: it predicts
+    a 95% cut where a real server measures 87.5%. fanlaw.fan_power is fitted
+    to that measurement, and the loss floor it carries is why the saving
+    here is smaller than the naive number.
+    """
     if fan_w < 0:
         raise ValueError("fan_w must be non-negative")
     if not (0.0 < duty_ctrl <= duty_base <= 1.0):
         raise ValueError("require 0 < duty_ctrl <= duty_base <= 1")
-    return fan_w * (1.0 - (duty_ctrl / duty_base) ** 3)
+    return fanlaw.fan_power(duty_base, fan_w) - fanlaw.fan_power(duty_ctrl, fan_w)
 
 
 def energy_per_node(fan_w: float = FAN_W, tariff: float = TARIFF,
@@ -207,20 +216,20 @@ def selftest() -> int:
 
     print("self-test: the fan bill behind the fleet")
     b = fan_bill(g)
-    near("energy", b["energy"], 5_412_388, 1)
+    near("energy", b["energy"], 3_622_668, 1)
     near("fatigue", b["fatigue"], 3_688_475, 1)
-    near("total", b["total"], 9_100_863, 1)
-    near("capacity MW", b["capacity_mw"], 5.720856, 1e-5)
-    near("extra nodes", b["extra_nodes"], 560, 0)
-    near("extra GPUs", b["extra_gpus"], 4_480, 0)
-    near("capacity revenue", b["revenue"], 92_991_339, 1)
-    near("share of $1B ARR", b["total"] / 1e9, 0.00910086, 1e-7)
+    near("total", b["total"], 7_311_143, 1)
+    near("capacity MW", b["capacity_mw"], 3.829135, 1e-5)
+    near("extra nodes", b["extra_nodes"], 375, 0)
+    near("extra GPUs", b["extra_gpus"], 3_000, 0)
+    near("capacity revenue", b["revenue"], 62_270_986, 1)
+    near("share of $1B ARR", b["total"] / 1e9, 0.00731114, 1e-7)
 
     print("self-test: pass-through and qualification")
     p = pass_through(b["total"], 1.0)
-    near("providers keep", p["provider"], 9_100_863, 1)
+    near("providers keep", p["provider"], 7_311_143, 1)
     near("Modal keeps", p["platform"], 0.0, 1e-9)
-    near("GPUs for $1M, anyone", breakeven_gpus(), 5_296, 0)
+    near("GPUs for $1M, anyone", breakeven_gpus(), 6_592, 0)
     near("qualification: no ownership",
          qualification(False, False, False, False) == "disqualified", 1, 0)
     near("qualification: landlord pays",

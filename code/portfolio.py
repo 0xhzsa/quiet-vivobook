@@ -77,14 +77,14 @@ def selftest() -> int:
 
     print("self-test: the three headlines")
     atl = lam.site(12)
-    near("Lambda ATL02 direct", atl["saving"], 1_777_252, 1)
-    near("Lambda ATL02 capacity", atl["revenue"], 18_287_096, 1)
+    near("Lambda ATL02 direct", atl["saving"], 1_427_749, 1)
+    near("Lambda ATL02 capacity", atl["revenue"], 12_247_321, 1)
     near("Together 8k at 100%", tog.attributable(8_000, 1.0)["direct"],
-         1_511_269, 1)
+         1_214_072, 1)
     near("Together 8k at 50%", tog.attributable(8_000, 0.5)["direct"],
-         755_635, 1)
+         607_036, 1)
     near("Modal underlying fan bill",
-         mod.fan_bill(mod.active_gpus(1e9))["total"], 9_100_863, 1)
+         mod.fan_bill(mod.active_gpus(1e9))["total"], 7_311_143, 1)
 
     print("self-test: the verdict matrix")
     near("Lambda", verdict(False, True, True, True) == "qualified", 1, 0)
@@ -93,9 +93,9 @@ def selftest() -> int:
 
     print("self-test: the Together boundary")
     near("ownership needed at 8k",
-         1_000_000 / tog.legs(8_000)["saving"], 0.6617, 1e-4)
+         1_000_000 / tog.legs(8_000)["saving"], 0.8237, 1e-4)
     near("ownership needed at 16k",
-         1_000_000 / tog.legs(16_000)["saving"], 0.3309, 1e-4)
+         1_000_000 / tog.legs(16_000)["saving"], 0.4118, 1e-4)
 
     print(f"\n{10 - failures}/10 checks passed")
     return 1 if failures else 0

@@ -34,12 +34,14 @@ from __future__ import annotations
 import argparse
 import math
 
+import fanlaw
+
 HOURS = 8760.0
 GPUS_PER_NODE = 8
 NODE_KW = 10.2
 FAN_W = 1000.0
 DUTY_BASE = 0.95
-DUTY_CTRL = 0.35
+DUTY_CTRL = 0.529
 TARIFF = 0.08
 PUE = 1.35
 AFR = 0.03
@@ -53,11 +55,18 @@ OWNED = 1.0
 
 def saved_watts(fan_w: float, duty_base: float = DUTY_BASE,
                 duty_ctrl: float = DUTY_CTRL) -> float:
+    """Fan watts removed by the duty cut, using the calibrated fan law.
+
+    The pure affinity law (duty_ctrl/duty_base)^3 overstates this: it predicts
+    a 95% cut where a real server measures 87.5%. fanlaw.fan_power is fitted
+    to that measurement, and the loss floor it carries is why the saving
+    here is smaller than the naive number.
+    """
     if fan_w < 0:
         raise ValueError("fan_w must be non-negative")
     if not (0.0 < duty_ctrl <= duty_base <= 1.0):
         raise ValueError("require 0 < duty_ctrl <= duty_base <= 1")
-    return fan_w * (1.0 - (duty_ctrl / duty_base) ** 3)
+    return fanlaw.fan_power(duty_base, fan_w) - fanlaw.fan_power(duty_ctrl, fan_w)
 
 
 def energy_per_node(fan_w: float = FAN_W, tariff: float = TARIFF,
@@ -169,31 +178,31 @@ def selftest() -> int:
 
     print("self-test: per-node algebra")
     near("1 kW node at $0.08 / PUE 1.35",
-         energy_per_node(1000, 0.08, 1.35), 898.77, 0.01)
+         energy_per_node(1000, 0.08, 1.35), 601.57, 0.01)
     near("500 W node at $0.08 / PUE 1.35",
-         energy_per_node(500, 0.08, 1.35), 449.38, 0.01)
+         energy_per_node(500, 0.08, 1.35), 300.79, 0.01)
     near("8-GPU fatigue at R=36", fatigue_per_node(), 612.50, 0.01)
     near("fatigue ceiling", fatigue_per_node(ratio=1e12), 630.00, 0.01)
-    near("total per node", energy_per_node() + fatigue_per_node(), 1511.27, 0.01)
+    near("total per node", energy_per_node() + fatigue_per_node(), 1214.07, 0.01)
 
     print("self-test: 8,000-GPU base scenario")
     r = legs(8_000)
     near("nodes", r["nodes"], 1000)
-    near("energy", r["energy"], 898_769.10, 1)
+    near("energy", r["energy"], 601_572, 1)
     near("fatigue", r["fatigue"], 612_500, 0.5)
-    near("total", r["saving"], 1_511_269.10, 1)
-    near("capacity MW", r["capacity_mw"], 0.949993, 1e-5)
-    near("extra nodes (floor)", r["extra_nodes"], 93)
-    near("extra GPUs", r["extra_gpus"], 744)
-    near("capacity revenue", r["revenue"], 15_602_751, 1)
+    near("total", r["saving"], 1_214_072, 1)
+    near("capacity MW", r["capacity_mw"], 0.635858, 1e-5)
+    near("extra nodes (floor)", r["extra_nodes"], 62)
+    near("extra GPUs", r["extra_gpus"], 496)
+    near("capacity revenue", r["revenue"], 10_401_834, 1)
 
     print("self-test: boundaries and attribution")
-    near("GPUs for $1M, total", breakeven_gpus(), 5_296, 0)
-    near("GPUs for $1M, energy only", breakeven_gpus(energy_only=True), 8_904, 0)
+    near("GPUs for $1M, total", breakeven_gpus(), 6_592, 0)
+    near("GPUs for $1M, energy only", breakeven_gpus(energy_only=True), 13_304, 0)
     a = attributable(8_000, 0.5)
-    near("50% owned, direct", a["direct"], 755_635, 0.5)
-    near("50% owned, capacity", a["capacity"], 7_801_376, 1)
-    near("36k naive total (liquid trap)", legs(36_000)["saving"], 6_800_711, 1)
+    near("50% owned, direct", a["direct"], 607_036, 0.5)
+    near("50% owned, capacity", a["capacity"], 5_200_917, 1)
+    near("36k naive total (liquid trap)", legs(36_000)["saving"], 5_463_325, 1)
 
     print(f"\n{16 - failures}/16 checks passed")
     return 1 if failures else 0
