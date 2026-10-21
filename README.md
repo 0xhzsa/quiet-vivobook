@@ -40,8 +40,8 @@ Provenance is one of four words, and it is used strictly:
 | Laptop profiles, 20-thread load on AC | stock 25.3 W / 82.2 °C; efficient 17.9 W / 72.5 °C; no-turbo 10.7 W / 67.7 °C; floor 8.7 W / 64.5 °C | measured, single sequential run | `data/profiles.csv` |
 | Server fan power at idle | 120 W → 15 W, a 87.5 % cut; 65 → 42 dB | measured, upstream | @0xAlcibiades, [quiet-lab](https://github.com/0xAlcibiades/quiet-lab) (MIT) — 64-core Ampere Altra, CPU server, not a GPU node |
 | Fan power law, 95 % → 35 % on a 1 kW tray | 86.25 % cut (881.0 W → 121.1 W); the pure affinity law says 95 % | modelled, fitted to the measurement | `code/fanlaw.py` |
-| 8-GPU node, 80 % GPU load, die held at 75 °C — the shipped operating point | duty 52.9 %; fan 881.0 W → 244.9 W; **72.20 %** of fan power saved; **0.00 %** throughput cost | simulated, calibrated | `code/server_thermal_controller.py --node gpu8 --target-temp 75` |
-| 8-GPU node at the 83 °C throttle knee | duty 35.3 %; **86.10 %** saved; **26.67 %** throughput cost | simulated | `code/server_thermal_controller.py --node gpu8` |
+| 8-GPU node, 80 % GPU load, die held at 75 °C — the shipped operating point | duty 52.9 %; fan 881.0 W → 244.9 W; **72.20 %** of fan power saved; **0.00 %** throughput cost | simulated, calibrated | `code/server_thermal_controller.py --target-temp 75` |
+| 8-GPU node at the 83 °C throttle knee | duty 35.3 %; **86.10 %** saved; **26.67 %** throughput cost | simulated | `code/server_thermal_controller.py` |
 | Model against the upstream measurement | 86.10 % modelled vs 87.5 % measured — 1.4 points apart | cross-check | the same command, and the self-test that asserts it |
 | Throughput-cost ledger | 0.00 % at the shipped duty; 26.67 % at the 83 °C knee; 6.92 % measured on the laptop; 20.60 % (laptop MPC) | simulated, and measured for the laptop | `code/throughput.py` |
 | Fatigue damage reduction, controlled vs stock | 1.3–1.8× Coffin-Manson; ≈2.0× with the Norris-Landzberg mean-temperature term | simulated | `code/cycling.py` (17 self-tests) |
@@ -147,8 +147,8 @@ uv run --no-project python code/lambda_case.py                       # three leg
 uv run --no-project python code/together_case.py                     # three legs, ownership, boundaries
 uv run --no-project python code/modal_case.py                        # derived fleet, pass-through
 uv run --no-project python code/portfolio.py                         # the three verdicts side by side
-uv run --no-project python code/server_thermal_controller.py --node gpu8
-uv run --no-project python code/server_thermal_controller.py --node gpu8 --target-temp 75
+uv run --no-project python code/server_thermal_controller.py
+uv run --no-project python code/server_thermal_controller.py --target-temp 75
 ```
 
 `code/audit.py` exits 1 when there are hard arithmetic failures, and
@@ -281,8 +281,8 @@ your original power scheme. The committed run is
 measurement):
 
 ```powershell
-uv run --no-project python code/server_thermal_controller.py --node gpu8
-uv run --no-project python code/server_thermal_controller.py --node gpu8 --target-temp 75
+uv run --no-project python code/server_thermal_controller.py
+uv run --no-project python code/server_thermal_controller.py --target-temp 75
 ```
 
 The first command is the throttle knee (83 °C): duty 35.3 %, fan 881.0 W →

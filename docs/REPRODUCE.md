@@ -62,8 +62,8 @@ uv run --no-project python code/throughput.py --selftest
 uv run --no-project python code/server_thermal_controller.py --selftest
 
 # the 8-GPU simulation, calibrated to the upstream 120 W -> 15 W measurement
-uv run --no-project python code/server_thermal_controller.py --node gpu8
-uv run --no-project python code/server_thermal_controller.py --node gpu8 --target-temp 75
+uv run --no-project python code/server_thermal_controller.py
+uv run --no-project python code/server_thermal_controller.py --target-temp 75
 ```
 
 Expected from the first command — the 83 °C throttle knee at 80 % GPU load:
@@ -284,7 +284,8 @@ Reference points from the model, for calibration of expectations:
 | measured laptop A/B | 6.92 % | measured, this machine |
 | simulated 8-GPU model, 83 °C throttle knee | 26.67 % | simulated |
 | simulated 8-GPU model, 75 °C throughput-safe duty | 0.00 % | simulated |
-| throughput ledger, 8-GPU scenario constant | 5.15 % | simulated (`code/throughput.py`) |
+| throughput ledger, 8-GPU throttle knee | 26.67 % | simulated (`code/throughput.py`) |
+| throughput ledger, 8-GPU shipped duty | 0.00 % | simulated (`code/thermal_model.py`) |
 | simulated laptop MPC controller | 20.6 % | simulated |
 | break-even on a saturated fleet | 0.50 % | arithmetic |
 
@@ -294,7 +295,7 @@ the GPU still runs at full boost — or the fleet has to have spare capacity.
 Both of those are decisions, and they are better than a spreadsheet.
 
 One residual inconsistency, flagged rather than hidden:
-`code/throughput.py` still carries a 5.15 % 8-GPU scenario constant from the
+`code/throughput.py` carries a 26.67 % 8-GPU scenario constant from the
 first version of the model. The recalibrated thermal model gives 26.67 % at
 the knee and 0.00 % at the shipped duty, so read that constant as a ledger
 scenario rather than as the model's output.

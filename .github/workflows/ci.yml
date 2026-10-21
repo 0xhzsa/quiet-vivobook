@@ -49,6 +49,7 @@ jobs:
         # code/fleet_model.py has none: it prints a report, it does not check.
         module:
           - case
+          - closed_loop
           - cycling
           - fanlaw
           - lambda_case
@@ -56,6 +57,7 @@ jobs:
           - portfolio
           - server_thermal_controller
           - targets
+          - thermal_model
           - together_case
           - throughput
     steps:
@@ -87,6 +89,11 @@ jobs:
           uv run --no-project python code/fleet_model.py
           uv run --no-project python code/cycling.py --replay data/telemetry-sample.csv
           uv run --no-project python code/portfolio.py
-          uv run --no-project python code/server_thermal_controller.py --node gpu8 --load 0.8
+          uv run --no-project python code/server_thermal_controller.py --load 0.8
+          uv run --no-project python code/thermal_model.py
+          uv run --no-project python code/closed_loop.py --seconds 300
+          uv run --no-project python code/throughput.py
+          uv run --no-project python code/fanlaw.py
+          uv run --no-project python code/targets.py
           uv run --no-project python code/throughput.py
           uv run --no-project python code/fanlaw.py
