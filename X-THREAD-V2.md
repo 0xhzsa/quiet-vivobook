@@ -53,14 +53,20 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 
 **4/15**
 
-> The honest part: my A-B-A run was confounded.
+> The honest part: my A-B-A thermal-mode run was confounded.
 >
 > mode 0: 37.2 W, 2.12M work
 > mode 1: 26.3 W, 1.54M
 > mode 2: 12.5 W, 0.96M
 > mode 0 again: 16.6 W, 1.00M
 >
-> The baseline did not reproduce. So I do not claim a clean throughput cost.
+> The baseline did not reproduce. So that run is invalid.
+>
+> But the power-scheme A/B (Balanced vs Quiet, governor paused, 4 blocks, balanced order) IS clean:
+>
+> quiet keeps 93.08% of balanced work. Cost: 6.92%. Range across blocks: 88.4% - 99.2%.
+>
+> Code: `controller/fan-scan/scheme-ab.ps1`. Artifact: `controller/fan-scan/scheme-*/summary.json`.
 
 ---
 
@@ -70,10 +76,11 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 > - actuator writes, reads back, restores
 > - modes are distinct power/thermal states
 > - harness counts work, not just watts
+> - clean laptop throughput cost: 6.92% (Quiet vs Balanced scheme, 4 blocks)
 >
 > Not proven:
-> - any server fan saving
-> - any clean throughput cost
+> - any server fan saving (only CPU server: 120W→15W)
+> - any server throughput cost
 >
 > I kept the invalid run. Deleting it is how a project starts lying.
 
@@ -104,12 +111,13 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 
 > The fan math, one 8-GPU air-cooled node:
 >
-> 1 kW tray at 95% duty.
-> 95 -> 35%: (35/95)^3 = 0.05.
-> 950 W saved.
-> 950 W x 8,760 h x $0.09/kWh x PUE 1.4 = $1,048/node/yr.
+> The ONLY measured fan saving is @0xAlcibiades' quiet-lab: 120 W -> 15 W (87.5%).
 >
-> 1,000 nodes = $1.05M/yr.
+> Modeled 1 kW tray at 95% -> 35%: (35/95)^3 = 0.05. 950 W saved.
+>
+> At 87.5%: 875 W saved. $966/node/yr at $0.09/kWh, PUE 1.4.
+>
+> Seven figures needs ~1,035 nodes at 87.5%, not 954 at 95%.
 
 ---
 
@@ -119,11 +127,12 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 >
 > 64-core Ampere server: 120 W -> 15 W fan power, 65 -> 42 dB.
 >
-> That is 87.5%, not 95%.
+> That is 87.5%, not 95%. It is a CPU server, not an 8-GPU node.
 >
-> At 1 kW: 875 W, $966/node/yr. Seven figures moves from 954 to 1,036 nodes.
+> At 1 kW modeled tray: 875 W saved, $966/node/yr. Seven figures at ~1,035 nodes.
 >
-> Thank you for publishing the trace.
+> The 1 kW tray is a model parameter. The 87.5% is a measurement on different hardware.
+> Extrapolating requires one BMC trace from an air-cooled GPU node.
 
 ---
 
@@ -136,8 +145,8 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 > R=1.3: $145
 > R=1.8: $280
 >
-> R=36 is a 12->2 C scenario. My laptop simulator says 1.3-1.8x. Quote the
-> range.
+> R=36 is a 12->2 C scenario. My laptop simulator says 1.3-1.8x; quote the range.
+> The simulator is a model; the laptop A/B measured 6.92% throughput cost on a CPU power scheme.
 
 ---
 
@@ -159,7 +168,7 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 > Lambda: @stephenbalaban + @LambdaAPI.
 >
 > ATL02 is 12 MW air-cooled, 1,176 nodes.
-> At 1 kW: $1.23-1.39M/yr at 1.3-1.8x ($1.78M at R=36).
+> At 87.5% of 1 kW: $1.08-1.22M/yr at 1.3-1.8x ($1.56M at R=36).
 >
 > One BMC fan trace from ATL02 replaces the model's biggest guess.
 >
@@ -171,7 +180,7 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 
 > Together: @vipulved + @togethercompute.
 >
-> 8,000 air-cooled H100/H200: $1.04-1.18M/yr at 1.3-1.8x.
+> 8,000 air-cooled H100/H200: $0.91-1.03M/yr at 1.3-1.8x.
 > The 36,000-GPU headline is liquid: zero fan watts, zero claim.
 >
 > At 8k it needs ~85-96% of the power bill.
@@ -184,7 +193,7 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 
 > Modal: @bernhardsson + @modal.
 >
-> Owns no fans and no nodes. The $6.3-7.1M fan bill belongs to its 13
+> Owns no fans and no nodes. The $5.5-6.2M fan bill belongs to its 13
 > providers. $0 to Modal.
 >
 > Its lever is utilization, a different business.
@@ -222,6 +231,8 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 - `controller/fan-scan/RESULTS.md` — write-path proof, invalid run, confounded run.
 - `controller/fan-scan/run.ps1` — read-only sensor map.
 - `controller/fan-scan/run-devs.ps1` — write/read-back/restore proof.
+- `controller/fan-scan/scheme-ab.ps1` — clean power-scheme A/B harness (no elevation).
+- `controller/fan-scan/scheme-*/summary.json` — 4-block paired results (93.08% ± 5.5%).
 - `code/cycling.py` — rainflow, Coffin-Manson, Norris-Landzberg, Miner.
 - `code/case.py` — fan + fatigue model, R=36 scenario.
 - `code/audit.py` — independent Decimal/provenance audit.
