@@ -77,10 +77,13 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 > - modes are distinct power/thermal states
 > - harness counts work, not just watts
 > - clean laptop throughput cost: 6.92% (Quiet vs Balanced scheme, 4 blocks)
+> - server thermal controller simulation (EKF + MPC) validated against
+>   quiet-lab's 120W->15W measurement (86.25% simulated vs 87.5% measured)
+> - simulated 8-GPU node: 95%->35% duty saves 86.25% fan power, throughput
+>   cost 5.15%, temps 63.8C->89.7C. Net $520/node/yr.
 >
 > Not proven:
-> - any server fan saving (only CPU server: 120W→15W)
-> - any server throughput cost
+> - any real 8-GPU server measurement (simulation only)
 >
 > I kept the invalid run. Deleting it is how a project starts lying.
 
@@ -233,6 +236,9 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 - `controller/fan-scan/run-devs.ps1` — write/read-back/restore proof.
 - `controller/fan-scan/scheme-ab.ps1` — clean power-scheme A/B harness (no elevation).
 - `controller/fan-scan/scheme-*/summary.json` — 4-block paired results (93.08% ± 5.5%).
+- `code/server_thermal_controller.py` — EKF+MPC thermal controller for 8-GPU node,
+  validated against quiet-lab 120W->15W. Simulated: 86.25% fan saving, 5.15%
+  throughput cost, $520/node/yr net.
 - `code/cycling.py` — rainflow, Coffin-Manson, Norris-Landzberg, Miner.
 - `code/case.py` — fan + fatigue model, R=36 scenario.
 - `code/audit.py` — independent Decimal/provenance audit.
