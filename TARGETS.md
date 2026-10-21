@@ -12,7 +12,7 @@ A target qualifies only if all five are true:
    disqualification.
 2. **Node control.** The claim is about node-level control, not a managed
    abstraction. You need the BMC, or someone who will give you the reading.
-3. **Thousands of GPUs.** Fan power alone reaches $1M/yr at ~954 eight-GPU
+3. **Thousands of GPUs.** Fan power alone reaches $1M/yr at ~1,425 eight-GPU
    nodes. Below ~500 nodes the claim is arithmetically impossible, no matter
    how good the controller is.
 4. **Reachable and identifiable on X.** A public fleet count makes the number
@@ -44,7 +44,7 @@ the ask. At 1,500 nodes:
 
 | fan per node | $/node/yr | 1,500 nodes |
 |---|---|---|
-| 1,000 W | $1,048.56 | **$1.57M** |
+| 1,000 W | $701.83 | **$1.05M** |
 | 500 W | $524.28 | **$786k** |
 | 300 W | $314.57 | **$472k** |
 
@@ -102,7 +102,7 @@ theoretical maximum at 10.2 kW/node, not a measured all-H100 fleet:
 
 | scope | nodes | cost saving (R=36 best case) | capacity value |
 |---|---:|---:|---:|
-| ATL02 12 MW | 1,176 | **$1.78M/yr** | **$18.3M/yr** |
+| ATL02 12 MW | 1,176 | **$1.43M/yr** | **$12.2M/yr** |
 | ATL02 14 MW | 1,372 | **$2.07M/yr** | **$21.3M/yr** |
 | 18,000-GPU lease | 2,250 | **$3.40M/yr** | **$35.1M/yr** |
 
@@ -130,9 +130,9 @@ ownership term cleanly:
   as a coming diversification; the 500 MW of commitments are capitalized
   independently by investors.
 
-At 8,000 air-cooled GPUs, the direct saving is **$1.51M/yr at 100 % ownership
+At 8,000 air-cooled GPUs, the direct saving is **$1.21M/yr at 100 % ownership
 at R=36** (**$1.04–1.18M** at the simulator's 1.3–1.8× Coffin-Manson) and **$0.76M at 50 %**.
-The seven-figure boundary is **5,296 owned air-cooled GPUs at R=36**, or
+The seven-figure boundary is **6,592 owned air-cooled GPUs at R=36**, or
 **~6,800–7,700** at the lower ratios. The ask is not "measure your fans"; it is
 "who pays the meter".
 
@@ -166,7 +166,7 @@ utilization story it already knows.
 
 1. **Tag one, not five.** A post that tags five companies reads as spam and
    gets ignored by all five.
-2. **Lead with their number, not ours.** "1,500 nodes × $1,048" is checkable.
+2. **Lead with their number, not ours.** "1,500 nodes × $702" is checkable.
    "We built a controller" is not.
 3. **Ask for one datapoint.** A BMC fan-power reading is a five-minute task for
    an operator and a decisive input for the model.

@@ -408,8 +408,8 @@ def audit_docs(a: Audit) -> None:
             "18→12 °C (R=2.25)" in case_flat and
             "$7,500 for the 1U CPU node" in case_flat)
     a.check("CASE-STUDY node counts are ceilinged",
-            "111,521" in case_flat and "7,287" in case_flat and
-            "**603**" in case_flat)
+            "114,980" in case_flat and "9,319" in case_flat and
+            "**761**" in case_flat)
     a.check("THREE-CASES 1.3-1.8 ranges exclude the R=36 upper bound",
             "$1.23–1.78" not in three and "$1.04–1.51" not in three
             and "$6.29–9.10" not in three)
@@ -417,7 +417,10 @@ def audit_docs(a: Audit) -> None:
             "Lambda has all three" not in three and
             "plausible" in three)
     a.check("README founder ranges are the 1.3-1.8 range",
-            "$1.23–1.39" in readme and "$1.04–1.18" in readme)
+            "$0.88–1.04M" in readme and "$0.75–0.88M" in readme)
+    a.check("README does not quote the superseded affinity-law numbers",
+            "$1.23–1.39M" not in readme and "$1.04–1.18M" not in readme
+            and "$1.08–1.22M" not in readme)
     a.check("Modal ARR share is split by scenario",
             "0.63–0.91" not in modal and "0.63–0.71" in modal)
 

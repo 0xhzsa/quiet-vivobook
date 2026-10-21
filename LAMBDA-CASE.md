@@ -25,7 +25,7 @@ H100 at $3.99/GPU-hr, 60 % utilization.** Every number below is from
 
 | scope | nodes | GPUs | fan energy | thermal fatigue | **cost saving** | **capacity value** |
 |---|---:|---:|---:|---:|---:|---:|
-| **ATL02 operating (12 MW)** | 1,176 | 9,408 | $1.06M | $0.72M | **$1.78M/yr** | **$18.3M/yr** |
+| **ATL02 operating (12 MW)** | 1,176 | 9,408 | $0.71M | $0.72M | **$1.43M/yr** | **$12.2M/yr** |
 | ATL02 design (14 MW) | 1,372 | 10,976 | $1.23M | $0.84M | **$2.07M/yr** | **$21.3M/yr** |
 | 18,000-GPU lease, if air-cooled | 2,250 | 18,000 | $2.02M | $1.38M | **$3.40M/yr** | **$35.1M/yr** |
 | 30 MW EdgeConneX footprint, ceiling | 2,941 | 23,528 | $2.64M | $1.80M | **$4.44M/yr** | **$45.8M/yr** |
@@ -142,11 +142,11 @@ saved per node**.
 8,322 × $0.08 × 1.35     = $898.77/node/yr
 ```
 
-At the first case's $0.09/kWh and PUE 1.4: **$1,048.56/node/yr**.
+At the first case's $0.09/kWh and PUE 1.4: **$701.83/node/yr**.
 
 | fan tray | saved W | $/node/yr @ $0.08/1.35 | $/node/yr @ $0.09/1.4 |
 |---:|---:|---:|---:|
-| 1,000 W | 950.0 | **$898.77** | **$1,048.56** |
+| 1,000 W | 635.9 | **$601.57** | **$701.83** |
 | 500 W | 475.0 | $449.38 | $524.28 |
 | 300 W | 285.0 | $269.63 | $314.57 |
 
@@ -271,7 +271,7 @@ The capacity leg is **gross revenue capacity**, not a saving:
   reasonable assumption — but it is an assumption.
 
 Why it matters anyway: the direct saving is **$1.23–1.39M/yr** at 1.3–1.8×
-(**$1.78M** at R=36) for ATL02 ($1.06M energy alone at 1 kW), and the capacity is **$18.3M/yr** of revenue at
+(**$1.43M** at R=36) for ATL02 ($0.71M energy alone at 1 kW), and the capacity is **$12.2M/yr** of revenue at
 the same site. The fan tray is a **10–15× lever on the thing Lambda actually
 sells**. That is the sentence for the founder, not the electricity bill.
 
@@ -286,7 +286,7 @@ Cost saving = energy + fatigue. Capacity is reported separately.
 
 | scope | energy | fatigue | **cost saving** | capacity (not a saving) |
 |---|---:|---:|---:|---:|
-| **ATL02 12 MW** | $1,056,952 | $720,300 | **$1,777,252** | $18,287,096 |
+| **ATL02 12 MW** | $707,449 | $720,300 | **$1,427,749** | $12,247,321 |
 | ATL02 14 MW | $1,233,111 | $840,350 | **$2,073,461** | $21,306,983 |
 | 18,000-GPU lease | $2,022,230 | $1,378,125 | **$3,400,355** | $35,064,248 |
 | 30 MW footprint | $2,643,280 | $1,801,362 | **$4,444,642** | $45,801,625 |
@@ -342,7 +342,7 @@ clears:
 
 | fan per node | $/node/yr (total) | nodes for $1M | GPUs for $1M | share of 18k |
 |---:|---:|---:|---:|---:|
-| 1,000 W | $1,511.27 | 662 | 5,296 | **29.4 %** |
+| 1,000 W | $1,214.07 | 824 | 6,592 | **50.4 %** |
 | 500 W | $1,061.88 | 942 | 7,536 | **41.9 %** |
 | 300 W | $882.13 | 1,134 | 9,072 | **50.4 %** |
 

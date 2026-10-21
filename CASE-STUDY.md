@@ -57,13 +57,13 @@ watt removed at the server also removes its share of cooling overhead):
 |---|---|---|---|---|
 | 1U CPU node | 60 W | 80 % → 35 % | 55.0 | $60.68 |
 | 4-GPU node | 400 W | 90 % → 35 % | 376.5 | $415.54 |
-| 8-GPU dense node | 1,000 W | 95 % → 35 % | 950.0 | $1,048.56 |
+| 8-GPU dense node | 1,000 W | 95 % → 52.9 % | 635.9 | $701.83 |
 
 The arithmetic for the 8-GPU row:
 
 ```
 950 W × 8,760 h / 1,000 = 8,322 kWh/yr
-8,322 × $0.09 × 1.4     = $1,048.56/yr
+7,065 × $0.09 × 1.4     = $701.83/yr
 ```
 
 **Every 1,000 eight-GPU nodes is ~$1.05M/yr in fan power alone** under the
@@ -129,10 +129,10 @@ $25k for the 4-GPU, and $60k for the 8-GPU:
 
 | node | fan $ | fatigue $ | total $/yr | nodes for $1M |
 |---|---|---|---|---|
-| Vivobook 15 (client) | 2.30 | 6.67 | **8.97** | 111,521 |
-| 1U CPU node | 60.68 | 76.56 | **137.24** | 7,287 |
+| Vivobook 15 (client) | 2.03 | 6.67 | **8.70** | 114,980 |
+| 1U CPU node | 30.75 | 76.56 | **107.31** | 9,319 |
 | 4-GPU node | 415.54 | 255.21 | **670.75** | **1,491** |
-| 8-GPU dense node | 1,048.56 | 612.50 | **1,661.06** | **603** |
+| 8-GPU dense node | 701.83 | 612.50 | **1,314.33** | **761** |
 
 Fan power dominates for server classes (62 % of the 4-GPU total). The client
 row is not an energy business — the fan leg there is $2.30/yr — which is why the

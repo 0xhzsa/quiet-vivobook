@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "quiet-vivobook: closed-loop thermal control, and the arithmetic behind the seven-figure fan-savings claim"
+abstract: >-
+  A closed-loop thermal controller for a machine that exposes no fan
+  telemetry, together with an independent audit of the fan-power and
+  thermal-cycling economics it is used to justify. Every published number
+  is labelled measured, simulated, public or assumed.
+authors:
+  - name: "0xhzsa"
+repository-code: "https://github.com/0xhzsa/quiet-vivobook"
+url: "https://github.com/0xhzsa/quiet-vivobook"
+license: MIT
+keywords:
+  - thermal-control
+  - fan-control
+  - mpc
+  - ekf
+  - datacenter
+  - energy-efficiency
+  - reproducible-research
+date-released: "2026-10-21"
+version: "0.1.0"
+preferred-citation:
+  type: software
+  title: "quiet-vivobook"
+  authors:
+    - name: "0xhzsa"
+  version: "0.1.0"
+  repository-code: "https://github.com/0xhzsa/quiet-vivobook"

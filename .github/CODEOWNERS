@@ -1,0 +1,14 @@
+# Default owners for everything in the repository.
+#
+# Line format: <path pattern> <owner>
+# The owner must be a user or a team with write access.
+
+# Catch-all.
+* @0xhzsa
+
+# The controller writes to machine firmware. Extra care, explicit review.
+/controller/ @0xhzsa
+/.github/workflows/ @0xhzsa
+
+# The verification code and the audit.
+/code/ @0xhzsa

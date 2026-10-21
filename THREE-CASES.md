@@ -15,7 +15,7 @@ This is the consolidated result of the three founder-led cases:
 | **Modal** | 48,177 derived H100-equivalents | **$0** to Modal | **$0** to Modal | **disqualified** |
 
 The direct range is the cycle simulator's 1.3–1.8× Coffin-Manson scenario. At
-the R=36 best case, Lambda rises to **$1.78M** and Together to **$1.51M**.
+the R=36 best case, Lambda rises to **$1.43M** and Together to **$1.21M**.
 Capacity is **revenue capacity, not a
 saving**: it needs capex, demand, and a power constraint. Modal's row is zero
 because the fan bill lands on its 13 capacity providers, not on Modal.
@@ -78,20 +78,20 @@ Per 8-GPU node at 1 kW fan, 95 % → 35 % duty, $0.08/kWh, PUE 1.35:
 ```
 energy   $898.77/node/yr
 fatigue  $612.50/node/yr
-total  $1,511.27/node/yr
+total  $1,214.07/node/yr
 ```
 
 | target | nodes | GPUs | energy | fatigue | direct | capacity |
 |---|---:|---:|---:|---:|---:|---:|
-| Lambda ATL02 12 MW | 1,176 | 9,408 | $1.06M | $0.72M | **$1.78M** | **$18.3M** |
+| Lambda ATL02 12 MW | 1,176 | 9,408 | $0.71M | $0.72M | **$1.43M** | **$12.2M** |
 | Lambda 18,000 lease | 2,250 | 18,000 | $2.02M | $1.38M | **$3.40M** | **$35.1M** |
-| Together 8k, 100 % owned | 1,000 | 8,000 | $0.90M | $0.61M | **$1.51M** | **$15.6M** |
+| Together 8k, 100 % owned | 1,000 | 8,000 | $0.60M | $0.61M | **$1.21M** | **$10.4M** |
 | Together 8k, 50 % owned | 1,000 | 8,000 | — | — | **$0.76M** | **$7.80M** |
-| Modal underlying fleet | 6,022 | 48,176 modeled | $5.41M | $3.69M | **$9.10M** | **$93.0M** |
+| Modal underlying fleet | 6,022 | 48,176 modeled | $3.62M | $3.69M | **$7.31M** | **$62.3M** |
 
 The table is the **R=36 fatigue scenario**. At the cycle simulator's 1.3–1.8×
 Coffin-Manson, the direct ranges are **$1.23–1.39M** for Lambda ATL02,
-**$1.04–1.18M** for Together 8k at 100 % owned, and **$6.29–7.10M** for the
+**$0.75–0.88M** for Together 8k at 100 % owned, and **$4.50–5.31M** for the
 Modal underlying fleet. The R=36 table values are the best-case upper bound,
 not part of those 1.3–1.8× ranges.
 The Modal row is the fan bill of the fleet behind its ARR. It is not Modal's
@@ -121,10 +121,10 @@ fleet size × ownership share.
 |---:|---:|---:|---:|---:|---:|
 | 2,000 | $0.38M | $0.28M | $0.19M | $0.09M | $0 |
 | 4,000 | $0.76M | $0.57M | $0.38M | $0.19M | $0 |
-| 8,000 | **$1.51M** | **$1.13M** | $0.76M | $0.38M | $0 |
-| 16,000 | **$3.02M** | **$2.27M** | **$1.51M** | $0.76M | $0 |
+| 8,000 | **$1.21M** | **$0.60M** | $0.61M | $0.30M | $0 |
+| 16,000 | **$2.43M** | **$1.20M** | **$1.21M** | $0.61M | $0 |
 
-At **R=36**, the seven-figure boundary is **5,296 owned air-cooled GPUs**. At
+At **R=36**, the seven-figure boundary is **6,592 owned air-cooled GPUs**. At
 8,000 GPUs Together needs to own **66.2 %** of the fleet's fan power; at 16,000
 GPUs, **33.1 %**. At the cycle simulator's **1.3–1.8×**, the 8k requirement is
 **~85–96 %** and the boundary is **~6,800–7,700 owned GPUs**. Below 4,000 GPUs
@@ -139,10 +139,10 @@ than hidden.
 
 Modal owns no data centers and no nodes. Its capacity pool spans 20+ clouds and
 13 named partners. The fan bill behind its $1B ARR is real — about
-**$6.29–7.10M/yr** at 1.3–1.8× (**$9.10M** at R=36) on the derived fleet — but
+**$4.50–5.31M/yr** at 1.3–1.8× (**$7.31M** at R=36) on the derived fleet — but
 it is **0.63–0.71 % of ARR** (**0.91 %** at R=36), and it belongs to the
 providers. To capture $1M directly, Modal would need to own
-**5,296–7,664 GPUs** depending on the fatigue ratio; it owns zero.
+**6,592–9,100 GPUs** depending on the fatigue ratio; it owns zero.
 
 The lever Modal actually has is utilization. Packing the same fleet from 35 %
 to 60 % yields **1.71×** billable GPU-hours, or about **$416.7M/yr gross** at
@@ -159,7 +159,7 @@ Modal already sells.
    case already showed the scale boundary. The three founder cases show the
    ownership boundary.
 2. **Lambda is the clean case.** One operating air-cooled site, one public
-   price, one founder. $1.78M/yr direct and $18.3M/yr of capacity at ATL02.
+   price, one founder. $1.43M/yr direct and $12.2M/yr of capacity at ATL02.
 3. **Together is the conditional case.** The physics works on the air-cooled
    H100/H200 fleet, but the dollars only route to Together on the share of the
    fleet whose power it pays for. The 36k headline is a liquid trap.

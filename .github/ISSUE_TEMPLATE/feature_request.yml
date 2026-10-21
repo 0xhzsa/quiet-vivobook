@@ -1,0 +1,68 @@
+name: Feature request
+description: Suggest a measurement, a model, or a piece of documentation.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The most useful requests here are measurements. The load-bearing
+        unknowns in this repository are the fan tray wattage of a real
+        air-cooled GPU node, the BMC's fan-power telemetry, and who pays the
+        meter. If you have access to any of those, that is worth more than
+        any new model.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is missing
+      description: What does the repository not let a reader do today?
+      placeholder: |
+        A reader cannot tell which of the fleet numbers assume a 1 kW fan
+        tray without reading the case scripts.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you add, change or remove, and where.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of change
+      options:
+        - A measurement (new data, or a new measurement protocol)
+        - A model (new physics, new leg, new sensitivity)
+        - Documentation (structure, clarity, a missing explanation)
+        - Tooling (CI, linting, packaging)
+        - Refactor
+    validations:
+      required: true
+
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Provenance of the numbers this would introduce
+      description: >
+        What label would the new numbers carry: measured, simulated, public
+        or assumed? If assumed, which value and which range?
+      placeholder: "measured: 30-day BMC trace from one ATL02 node"
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: This does not change any number that is currently labelled measured.
+        - label: This does not change any number that is currently labelled assumed, without also updating the provenance column in the status table.

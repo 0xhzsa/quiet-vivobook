@@ -28,7 +28,7 @@ $3.99/GPU-hr, 60 % utilization. Every number is from `code/together_case.py`.
 |---:|---:|---:|---:|---:|---:|
 | 2,000 | 250 | $0.22M | $0.15M | **$0.38M** | **$3.86M** |
 | 4,000 | 500 | $0.45M | $0.31M | **$0.76M** | **$7.72M** |
-| **8,000** | **1,000** | **$0.90M** | **$0.61M** | **$1.51M** | **$15.60M** |
+| **8,000** | **1,000** | **$0.60M** | **$0.61M** | **$1.21M** | **$10.40M** |
 | 16,000 | 2,000 | $1.80M | $1.23M | **$3.02M** | **$31.21M** |
 | 36,000 (liquid) | 4,500 | $0 | $0 | **$0** | **$0** |
 
@@ -42,14 +42,14 @@ The ownership table is the actual result:
 
 | owned share | Together direct | Together capacity | partner direct |
 |---:|---:|---:|---:|
-| 100 % | **$1,511,269** | **$15,602,751** | $0 |
+| 100 % | **$1,214,072** | **$10,401,834** | $0 |
 | 75 % | **$1,133,452** | **$11,702,064** | $377,817 |
 | 50 % | $755,635 | $7,801,376 | $755,635 |
 | 25 % | $377,817 | $3,900,688 | $1,133,452 |
-| 0 % | $0 | $0 | $1,511,269 |
+| 0 % | $0 | $0 | $1,214,072 |
 
 At 50 % ownership, the direct claim is **$0.76M** — below seven figures. At
-**R=36**, the seven-figure boundary is **5,296 owned air-cooled GPUs**. At 8,000
+**R=36**, the seven-figure boundary is **6,592 owned air-cooled GPUs**. At 8,000
 GPUs, Together needs **66.2 %** of the fan power; at 16,000, **33.1 %**. At the
 cycle simulator's **1.3–1.8× Coffin-Manson**, the 8k boundary rises to **~85–96 %** ownership
 and **~6,800–7,700 owned GPUs**. Below 4,000 GPUs the direct claim cannot reach
@@ -169,7 +169,7 @@ saved per node**.
 
 | fan tray | saved W | $/node/yr @ $0.08/1.35 | $/node/yr @ $0.09/1.4 |
 |---:|---:|---:|---:|
-| 1,000 W | 950.0 | **$898.77** | **$1,048.56** |
+| 1,000 W | 635.9 | **$601.57** | **$701.83** |
 | 500 W | 475.0 | $449.38 | $524.28 |
 | 300 W | 285.0 | $269.63 | $314.57 |
 
@@ -224,7 +224,7 @@ it, no matter how good the controller is.
 
 At the cycle simulator's **1.3–1.8×**, fatigue is **$145–$280/node**. The 8,000-GPU
 base becomes **$1.04–$1.18M** at 100 % ownership; energy alone is **$0.90M**. So
-the seven-figure boundary is **~6,800–7,700 owned GPUs**, not 5,296, and the
+the seven-figure boundary is **~8,400–9,300 owned GPUs**, not 6,592, and the
 ownership needed at 8k is **~85–96 %**, not 66 %. The R=36 table is the best
 case.
 
@@ -305,13 +305,13 @@ At 8,000 GPUs:
 
 | owned share | direct | capacity | who gets the rest |
 |---:|---:|---:|---|
-| 100 % | **$1,511,269** | **$15,602,751** | — |
+| 100 % | **$1,214,072** | **$10,401,834** | — |
 | 75 % | **$1,133,452** | **$11,702,064** | partner: $377,817 |
 | 50 % | $755,635 | $7,801,376 | partner: $755,635 |
 | 25 % | $377,817 | $3,900,688 | partner: $1,133,452 |
-| 0 % | $0 | $0 | partner: $1,511,269 |
+| 0 % | $0 | $0 | partner: $1,214,072 |
 
-At **R=36**, the seven-figure boundary is **5,296 owned air-cooled GPUs**; at
+At **R=36**, the seven-figure boundary is **6,592 owned air-cooled GPUs**; at
 the simulator's 1.3–1.8×, it is **~6,800–7,700**. Put differently (R=36 table):
 
 | air-cooled fleet | ownership needed for $1M direct | verdict at 50 % owned |
@@ -319,13 +319,13 @@ the simulator's 1.3–1.8×, it is **~6,800–7,700**. Put differently (R=36 tab
 | 2,000 | 264.7 % | impossible |
 | 4,000 | 132.3 % | impossible |
 | 8,000 | **66.2 %** | $0.76M — below seven figures |
-| 16,000 | **33.1 %** | **$1.51M** — clears |
+| 16,000 | **41.2 %** | **$1.21M** — clears |
 | 36,000 (liquid) | n/a | $0 — no fans |
 
 This is the honest shape of the Together claim:
 
 - If Together owns the whole 8,000-GPU air-cooled fleet, the direct claim is
-  **$1.51M/yr at R=36** (**$1.04–1.18M** at the simulator's 1.3–1.8×), and the
+  **$1.21M/yr at R=36** (**$0.75–0.88M** at the simulator's 1.3–1.8×), and the
   capacity is **$15.6M/yr**.
 - If it owns half, the direct claim is **$0.76M** — not seven figures.
 - If the air-cooled fleet is 4,000 GPUs, the direct claim cannot reach $1M even
@@ -346,11 +346,11 @@ separately.
 |---:|---:|---:|---:|---:|
 | 2,000 | $377,817 | $283,363 | $188,909 | $3,858,745 |
 | 4,000 | $755,635 | $566,726 | $377,817 | $7,717,490 |
-| **8,000** | **$1,511,269** | **$1,133,452** | $755,635 | **$15,602,751** |
-| 16,000 | **$3,022,538** | **$2,266,904** | **$1,511,269** | **$31,205,503** |
+| **8,000** | **$1,214,072** | **$601,572** | $607,036 | **$10,401,834** |
+| 16,000 | **$2,428,145** | **$1,203,145** | **$1,214,072** | **$20,803,669** |
 
 At the first case's $0.09/kWh and PUE 1.4, the energy column rises by 16.7 %.
-At 8,000 GPUs, direct at 100 % becomes **$1,661,064** (energy $1,048,564 +
+At 8,000 GPUs, direct at 100 % becomes **$1,214,072** (energy $601,572 +
 fatigue $612,500).
 
 ### The knobs, at 8,000 GPUs and 100 % ownership
@@ -360,7 +360,7 @@ fatigue $612,500).
 | fan wattage | 300 W | 1,000 W | 1,500 W | **$0.88M – $1.96M** |
 | tariff × PUE | $0.06 × 1.2 | $0.08 × 1.35 | $0.12 × 1.5 | **$1.21M – $2.11M** |
 | fatigue parameters | −50 % | base | +50 % | **$1.21M – $1.82M** |
-| ownership | 50 % | 100 % | 100 % | **$0.76M – $1.51M** |
+| ownership | 50 % | 100 % | 100 % | **$0.61M – $1.21M** |
 | utilization (capacity) | 40 % | 60 % | 80 % | $10.4M – $20.8M |
 
 The ranking is the same as the first two cases: **fan wattage dominates**.
@@ -375,7 +375,7 @@ Direct saving at 100 % ownership, by fleet size and fan wattage:
 |---:|---:|---:|---:|
 | 2,000 | $0.38M | $0.27M | $0.22M |
 | 4,000 | $0.76M | $0.53M | $0.44M |
-| 8,000 | **$1.51M** | **$1.06M** | $0.88M |
+| 8,000 | **$1.21M** | **$0.60M** | $0.61M |
 | 16,000 | **$3.02M** | **$2.12M** | **$1.76M** |
 
 At 50 % ownership, cut every number in half: the 8,000-GPU / 1 kW cell becomes

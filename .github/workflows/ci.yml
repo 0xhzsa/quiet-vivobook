@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Audit (Decimal + provenance)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          # No lockfile and no third-party dependency: nothing to cache.
+          enable-cache: false
+
+      - name: Run code/audit.py
+        shell: bash
+        run: |
+          set +e
+          uv run --no-project python code/audit.py 2>&1 | tee audit-output.txt
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "code/audit.py exit status: ${status}"
+          # The audit exits 1 on hard arithmetic failures, and --strict also
+          # exits 1 on provenance warnings. CI runs it without --strict, so
+          # the gate is the hard-failure count, not the exit status.
+          if ! grep -q "0 hard failure(s)" audit-output.txt; then
+            echo "::error::code/audit.py reported hard failures"
+            exit 1
+          fi
+
+  selftests:
+    name: Selftest (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Every module in code/ that supports a --selftest flag.
+        # code/fleet_model.py has none: it prints a report, it does not check.
+        module:
+          - case
+          - cycling
+          - fanlaw
+          - lambda_case
+          - modal_case
+          - portfolio
+          - server_thermal_controller
+          - targets
+          - together_case
+          - throughput
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: Run ${{ matrix.module }}.py --selftest
+        run: uv run --no-project python code/${{ matrix.module }}.py --selftest
+
+  smoke:
+    name: Entry points run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: false
+
+      - name: The printed reports still run
+        run: |
+          uv run --no-project python code/fleet_model.py
+          uv run --no-project python code/cycling.py --replay data/telemetry-sample.csv
+          uv run --no-project python code/portfolio.py
+          uv run --no-project python code/server_thermal_controller.py --node gpu8 --load 0.8
+          uv run --no-project python code/throughput.py
+          uv run --no-project python code/fanlaw.py

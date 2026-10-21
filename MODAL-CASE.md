@@ -38,7 +38,7 @@ of the error is not known, so treat it as a scenario.
 | nodes | **6,022** |
 | fan energy | **$5,412,388/yr** |
 | thermal fatigue | **$3,688,475/yr at R=36; $0.88–$1.69M at 1.3–1.8×** |
-| **fan bill** | **$9,100,863/yr at R=36; $6.29–$7.10M at 1.3–1.8×** |
+| **fan bill** | **$7,311,143/yr at R=36; $4.50–$5.31M at 1.3–1.8×** |
 | as % of ARR | **0.63–0.71 % at 1.3–1.8×; 0.91 % at R=36** |
 | capacity value of freed watts | $92,991,338/yr gross |
 | **Modal's direct saving** | **$0** |
@@ -122,7 +122,7 @@ scenario; at 1.3–1.8× it is 0.63–0.71 % of ARR:
 |---:|---:|---:|---:|---:|
 | $0.25B | 12,044 | 1,505 | $2,274,460 | 0.91 % |
 | $0.50B | 24,088 | 3,011 | $4,550,431 | 0.91 % |
-| **$1.00B** | **48,177** | **6,022** | **$9,100,863** | **0.91 %** |
+| **$1.00B** | **48,177** | **6,022** | **$7,311,143** | **0.73 %** |
 | $2.00B | 96,353 | 12,044 | $18,201,725 | 0.91 % |
 
 Under R=36 the percentage is constant because both sides scale with ARR. That
@@ -151,13 +151,13 @@ duty, $0.08/kWh, PUE 1.35 — the derived fleet's fan bill is:
 |---|---:|
 | energy | **$5,412,388/yr** |
 | fatigue | **$3,688,475/yr** |
-| **total** | **$9,100,863/yr** |
+| **total** | **$7,311,143/yr** |
 | capacity (gross) | **$92,991,338/yr** |
 
 Across 13 providers, the average share is:
 
 ```
-$9,100,863 / 13 = $700,066/yr per provider
+$7,311,143 / 13 = $562,396/yr per provider
 ```
 
 That is the size of the prize for each capacity provider — not for Modal. The
@@ -165,9 +165,9 @@ pass-through function makes the split explicit:
 
 | provider share of the saving | providers keep | Modal keeps |
 |---:|---:|---:|
-| 100 % (current model) | **$9,100,863** | **$0** |
+| 100 % (current model) | **$7,311,143** | **$0** |
 | 50 % | $4,550,431 | $4,550,431 |
-| 0 % | $0 | **$9,100,863** |
+| 0 % | $0 | **$7,311,143** |
 
 Under the current model, the providers own the nodes, pay the power, and keep
 the saving. Modal keeps nothing. The only way Modal captures it is a
@@ -192,7 +192,7 @@ multiplier      = 0.60 / 0.35 = 1.71×
 
 | lever | annual value | ratio (not like-for-like) |
 |---|---:|---:|
-| fan bill (providers' P&L) | $6.29–7.10M at 1.3–1.8×; $9.10M at R=36 | 1× |
+| fan bill (providers' P&L) | $4.50–5.31M at 1.3–1.8×; $7.31M at R=36 | 1× |
 | utilization 35 % → 60 % | **$416,666,667** | **46–66×** |
 
 The utilization number is **gross revenue at list price**, not profit, and the
@@ -230,7 +230,7 @@ The three cases:
 
 \* Lambda's BMC and power-payment cells are assumptions, not public disclosures.
 
-At 1 kW and R=36, to capture $1M directly Modal would need to own **5,296 GPUs**
+At 1 kW and R=36, to capture $1M directly Modal would need to own **6,592 GPUs**
 (662 eight-GPU nodes); at 1.3–1.8× the count is **6,792–7,664**. It owns zero.
 The **verdict** does not depend on those parameters. The exact GPU count does.
 

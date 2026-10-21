@@ -1,0 +1,76 @@
+name: Bug report
+description: Something in the model, the code or the documentation is wrong.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing it. Before you start: the repository documents which
+        numbers are measured, simulated, public or assumed. If the number you
+        are reporting on is labelled *assumed*, the bug may be that it is not
+        the assumption you expected — say which one you expected.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you ran or read, and what it produced.
+      placeholder: |
+        uv run --no-project python code/audit.py
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Exact command
+      description: If one command reproduces it, paste it here verbatim.
+      placeholder: uv run --no-project python code/case.py --selftest
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Documentation (README, CASE-STUDY, THREE-CASES, docs/)
+        - code/audit.py
+        - code/ model (fan law, fatigue, case, fleet)
+        - code/server_thermal_controller.py
+        - controller/ (Windows, PowerShell)
+        - CI (.github/workflows/ci.yml)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Provenance of the number involved
+      description: >
+        If the report is about a specific number, which label does it carry
+        today, and which label should it carry?
+      placeholder: "measured -> should be simulated"
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, uv version.
+      placeholder: Windows 11, Python 3.12, uv 0.12.15
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I ran `uv run --no-project python code/audit.py` and pasted the summary line above.
+          required: true
+        - label: I searched the existing issues for this one.
