@@ -28,6 +28,14 @@
   Encoding on VIVO is NOT the generic ASUS one:
       0 = default/balanced   1 = SILENT   2 = OVERBOOST
 
+  STATUS: v3 has NOT been executed. The elevation prompt was declined
+  during the session in which it was written, so the cooldown gate, the
+  null-temperature invalidation, the mode-drift detection and the -Modes
+  parsing fix have never run against hardware. The three committed output
+  directories are from v2. Treat this file as unexercised until someone
+  runs it with an approved elevation prompt, and read
+  controller/fan-scan/RESULTS.md for what v2 actually produced.
+
   Output: samples.jsonl, summary.json, mode.log
 #>
 [CmdletBinding(PositionalBinding = $false)]

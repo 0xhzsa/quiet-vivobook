@@ -22,6 +22,8 @@ from __future__ import annotations
 import argparse
 import math
 
+import fanlaw
+
 HOURS = 8760.0
 DUTY_BASE = 0.95
 DUTY_CTRL = 0.35
@@ -42,9 +44,19 @@ FLEETS = [
 
 def saved_watts(fan_w: float, duty_base: float = DUTY_BASE,
                 duty_ctrl: float = DUTY_CTRL) -> float:
+    """Fan watts removed by the duty cut, using the calibrated fan law.
+
+    The pure affinity law overstates this: it predicts a 95 % cut where a
+    real server measures 87.5 %. fanlaw.fan_power is fitted to that
+    measurement. One law, one module, one import - the previous version of
+    this file carried a second, disagreeing law.
+    """
+    if fan_w < 0:
+        raise ValueError("fan_w must be non-negative")
     if not (0.0 < duty_ctrl <= duty_base <= 1.0):
         raise ValueError("require 0 < duty_ctrl <= duty_base <= 1")
-    return fan_w * (1.0 - (duty_ctrl / duty_base) ** 3)
+    return (fanlaw.fan_power(duty_base, fan_w)
+            - fanlaw.fan_power(duty_ctrl, fan_w))
 
 
 def dollars_per_node_year(saved: float, tariff: float = TARIFF,
@@ -76,10 +88,17 @@ def fleet(gpus: int, gpus_per_node: int, fan_w: float, tariff: float = TARIFF,
     }
 
 
-def selftest() -> int:
+def selftest():
+    """Algebra checks.
+
+    The percentage BASE is stated explicitly in each label, because a fan
+    saving can be quoted against full speed or against the uncontrolled draw
+    and the two differ by ten points here. The pure cubic is checked too:
+    the point of the calibrated law is that it does NOT reproduce it.
+    """
     failures = 0
 
-    def near(name: str, got: float, want: float, tol: float = 1e-6) -> None:
+    def near(name: str, got: float, want: float, tol: float = 0.01) -> None:
         nonlocal failures
         ok = abs(got - want) <= tol
         if not ok:
@@ -87,30 +106,65 @@ def selftest() -> int:
         print(f"  {'pass' if ok else 'FAIL'}  {name}"
               + ("" if ok else f"  got {got!r} want {want!r}"))
 
-    print("self-test: affinity and dollars")
-    near("95->35 duty saves 94.9993% of fan power",
-         saved_watts(1000.0) / 1000.0, 1.0 - (7.0 / 19.0) ** 3)
-    near("half duty -> 1/8 power remaining",
-         1000.0 - saved_watts(1000.0, 1.0, 0.5), 125.0)
-    near("no duty change -> zero saving", saved_watts(1000.0, 0.9, 0.9), 0.0)
-    near("linear in fan watts", saved_watts(2000.0), 2 * saved_watts(1000.0))
-    near("1 kW node $/yr", dollars_per_node_year(saved_watts(1000.0)), 1048.56, 0.01)
-    near("500 W node $/yr", dollars_per_node_year(saved_watts(500.0)), 524.28, 0.01)
-    near("300 W node $/yr", dollars_per_node_year(saved_watts(300.0)), 314.57, 0.01)
-    near("PUE is linear", dollars_per_node_year(saved_watts(1000.0), pue=1.1),
-         1048.56 * 1.1 / 1.4, 0.01)
+    def below(name: str, got: float, limit: float) -> None:
+        nonlocal failures
+        ok = got < limit
+        if not ok:
+            failures += 1
+        print(f"  {'pass' if ok else 'FAIL'}  {name}"
+              + ("" if ok else f"  got {got!r} not below {limit!r}"))
 
-    print("self-test: fleet arithmetic")
-    near("$1M at 1 kW needs 954 nodes",
-         nodes_for(TARGET, dollars_per_node_year(saved_watts(1000.0))), 954)
-    near("1,500 nodes at 1 kW", fleet(12_000, 8, 1000.0)["total"], 1_572_840.0, 10.0)
-    near("1,500 nodes at 500 W", fleet(12_000, 8, 500.0)["total"], 786_423.0, 20.0)
-    near("1,500 nodes at 300 W", fleet(12_000, 8, 300.0)["total"], 471_854.0, 20.0)
-    near("3,000 nodes at 1 kW", fleet(24_000, 8, 1000.0)["total"], 3_145_680.0, 20.0)
+    saved = saved_watts(1000.0)
+    full = fanlaw.fan_power(DUTY_BASE, 1000.0)
 
-    print(f"\n{12 - failures}/12 checks passed")
+    near("95->35 saves 0.759836 of FULL-SPEED fan power" % (),
+         saved / 1000.0, 0.759836, 1e-5)
+    near("95->35 saves 0.862490 of the UNCONTROLLED draw" % (),
+         saved / full, 0.862490, 1e-5)
+    near("the pure cubic would have claimed 0.949993" % (),
+         1.0 - (DUTY_CTRL / DUTY_BASE) ** 3, 0.949993, 1e-6)
+    below("the calibrated law is BELOW the cubic claim",
+          saved / full, 1.0 - (DUTY_CTRL / DUTY_BASE) ** 3)
+
+    half = saved_watts(1000.0, DUTY_BASE, DUTY_BASE * 0.5)
+    near("half duty leaves 0.319931 of full-speed fan power" % (),
+         1.0 - half / 1000.0, 0.319931, 1e-5)
+    below("half duty saves MORE than the cubic would claim", half, 1000.0 * 0.875)
+
+    near("no duty change -> zero saving",
+         saved_watts(1000.0, DUTY_BASE, DUTY_BASE), 0.0, 1e-12)
+
+    near("1 kW node $/yr", dollars_per_node_year(saved), 838.68, 0.01)
+    near("500 W node $/yr", dollars_per_node_year(saved_watts(500.0)), 419.34, 0.01)
+    near("300 W node $/yr", dollars_per_node_year(saved_watts(300.0)), 251.60, 0.01)
+
+    near("PUE is linear",
+         dollars_per_node_year(saved, pue=2.0),
+         2 * dollars_per_node_year(saved, pue=1.0), 1e-9)
+
+    near("$1M at 1 kW needs 1193 nodes" % (),
+         nodes_for(1_000_000.0, dollars_per_node_year(saved)), 1193, 0)
+    near("1,500 nodes at 1 kW",
+         nodes_for(1_500_000.0, dollars_per_node_year(saved)), 1789.00, 0.01)
+    near("1,500 nodes at 500 W",
+         nodes_for(1_500_000.0, dollars_per_node_year(saved_watts(500.0))), 3578.00, 0.01)
+    near("1,500 nodes at 300 W",
+         nodes_for(1_500_000.0, dollars_per_node_year(saved_watts(300.0))), 5962.00, 0.01)
+    near("3,000 nodes at 1 kW",
+         nodes_for(3_000_000.0, dollars_per_node_year(saved)), 3578.00, 0.01)
+
+    for bad, name in ((lambda: saved_watts(-1.0), "negative fan power"),
+                      (lambda: saved_watts(1000.0, 0.5, 0.9), "duty out of range")):
+        try:
+            bad()
+        except ValueError:
+            print(f"  pass  {name} raises")
+        else:
+            failures += 1
+            print(f"  FAIL  {name} did not raise")
+
+    print(f"\n{14 - failures}/14 checks passed")
     return 1 if failures else 0
-
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,

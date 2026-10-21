@@ -14,9 +14,9 @@ Where the numbers come from
             paired blocks. Quiet keeps 93.08% of balanced work.
             Artifact: controller/fan-scan/scheme-ab-latest-summary.json
 
-  8-GPU     5.15% throughput cost, SIMULATED. Calibrated EKF/MPC thermal
-            model of a dense 8x700W node, 95% -> 35% fan duty.
-            Code: code/server_thermal_controller.py
+  8-GPU     26.67% throughput cost at the 83 C throttle knee, 0.00% at the
+            shipped full-boost duty. SIMULATED, from the steady-state
+            thermal solve in code/thermal_model.py.
 
   simulator 20.6% throughput cost, SIMULATED. The original laptop MPC
             controller at its 79.4% work retention.
@@ -56,7 +56,7 @@ GPUS_PER_NODE = 8
 
 # Measured / simulated throughput cost, as a fraction of work retained.
 LAPTOP_COST = 0.0692      # MEASURED, this machine
-GPU8_COST = 0.0515        # SIMULATED, calibrated 8-GPU model
+GPU8_COST = 0.2667        # SIMULATED: the 83 C throttle knee
 MPC_SIM_COST = 0.2060     # SIMULATED, original laptop MPC controller
 
 
@@ -141,7 +141,7 @@ def net_saving(fan_saving_usd: float, cost_fraction: float, revenue: float,
     }
 
 
-def report(fan_saving_usd: float = 839.0, gpus: int = GPUS_PER_NODE,
+def report(fan_saving_usd: float = 702.08, gpus: int = GPUS_PER_NODE,
            price: float = GPU_PRICE, util: float = UTIL) -> dict:
     """The full ledger for one 8-GPU node under each throughput estimate."""
     revenue = gross_revenue_per_node(gpus, price, util)
@@ -152,7 +152,7 @@ def report(fan_saving_usd: float = 839.0, gpus: int = GPUS_PER_NODE,
     }
     for name, frac, prov in (
         ("measured laptop A/B", LAPTOP_COST, "measured"),
-        ("simulated 8-GPU model", GPU8_COST, "simulated"),
+        ("simulated 8-GPU throttle knee", GPU8_COST, "simulated"),
         ("simulated MPC controller", MPC_SIM_COST, "simulated"),
     ):
         r = net_saving(fan_saving_usd, frac, revenue)
@@ -182,8 +182,8 @@ def selftest() -> int:
           abs(gross_revenue_per_node(price=GPU_PRICE * 2) - 2 * rev) < 0.01)
 
     # Throughput cost
-    check("5.15% of revenue is $8,640",
-          abs(throughput_cost(GPU8_COST, rev) - 8_640.23) < 0.5,
+    check("26.67% of revenue is $44,745",
+          abs(throughput_cost(GPU8_COST, rev) - 44_744.66) < 0.5,
           "got %.2f" % throughput_cost(GPU8_COST, rev))
     check("zero loss costs zero",
           throughput_cost(0.0, rev) == 0.0)
@@ -191,20 +191,20 @@ def selftest() -> int:
           abs(throughput_cost(1.0, rev) - rev) < 1e-9)
 
     # Net
-    n = net_saving(839.0, GPU8_COST, rev, 1.0)
+    n = net_saving(702.08, GPU8_COST, rev, 1.0)
     check("net is fan saving minus effective throughput cost",
-          abs(n["net"] - (839.0 - n["effective_cost"])) < 1e-9)
+          abs(n["net"] - (702.08 - n["effective_cost"])) < 1e-9)
     check("net_constrained is fan saving minus gross throughput cost",
           abs(n["net_constrained"]
-              - (839.0 - throughput_cost(GPU8_COST, rev))) < 1e-9)
+              - (702.08 - throughput_cost(GPU8_COST, rev))) < 1e-9)
     check("measured laptop cost also nets negative when constrained",
-          net_saving(839.0, LAPTOP_COST, rev, 1.0)["net"] < 0)
+          net_saving(702.08, LAPTOP_COST, rev, 1.0)["net"] < 0)
     check("MPC controller cost nets strongly negative when constrained",
-          net_saving(839.0, MPC_SIM_COST, rev, 1.0)["net"] < -30_000)
+          net_saving(702.08, MPC_SIM_COST, rev, 1.0)["net"] < -30_000)
 
     # Break-even
     check("break-even cost fraction is saving over revenue",
-          abs(n["breakeven_cost_fraction"] - 839.0 / rev) < 1e-12)
+          abs(n["breakeven_cost_fraction"] - 702.08 / rev) < 1e-12)
 
     # Capacity regime
     check("60% utilization is NOT capacity constrained",
@@ -217,12 +217,12 @@ def selftest() -> int:
           abs(effective_cost(GPU8_COST, rev, 1.0)["effective_cost"]
               - throughput_cost(GPU8_COST, rev)) < 1e-9)
     check("net is positive with spare capacity",
-          net_saving(839.0, GPU8_COST, rev, 0.60)["net"] > 0)
+          net_saving(702.08, GPU8_COST, rev, 0.60)["net"] > 0)
     check("net is negative when constrained",
-          net_saving(839.0, GPU8_COST, rev, 1.0)["net"] < 0)
+          net_saving(702.08, GPU8_COST, rev, 1.0)["net"] < 0)
     check("both regimes are reported in net_saving",
-          "net" in net_saving(839.0, GPU8_COST, rev, 1.0)
-          and "net_constrained" in net_saving(839.0, GPU8_COST, rev, 1.0))
+          "net" in net_saving(702.08, GPU8_COST, rev, 1.0)
+          and "net_constrained" in net_saving(702.08, GPU8_COST, rev, 1.0))
 
     # Invalid inputs
     for bad in (lambda: gross_revenue_per_node(gpus=0),
@@ -243,7 +243,7 @@ def selftest() -> int:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--selftest", action="store_true")
-    ap.add_argument("--fan-saving", type=float, default=839.0,
+    ap.add_argument("--fan-saving", type=float, default=702.08,
                     help="annual fan saving per node, USD")
     ap.add_argument("--gpus", type=int, default=GPUS_PER_NODE)
     ap.add_argument("--price", type=float, default=GPU_PRICE)
@@ -291,7 +291,7 @@ def main() -> None:
 def _frac(name: str) -> float:
     if "laptop" in name:
         return LAPTOP_COST
-    if "8-GPU" in name:
+    if "8-GPU" in name or "throttle knee" in name:
         return GPU8_COST
     return MPC_SIM_COST
 
