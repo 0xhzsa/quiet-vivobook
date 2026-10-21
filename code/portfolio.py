@@ -147,7 +147,7 @@ def main() -> int:
           "not a fan saving")
 
     print("\nread next")
-    print("  THREE-CASES.md      the comparison and the falsification")
+    print("  THREE-CASES.md      the comparison and the verification")
     print("  LAMBDA-CASE.md      qualified")
     print("  TOGETHER-CASE.md    conditional")
     print("  MODAL-CASE.md       disqualified")

@@ -34,7 +34,7 @@ The fatigue (thermal cycling) leg is a second, conditional term — and it is
 capped. The base case uses a **12 °C → 2 °C swing scenario (R=36)**; the
 package's own laptop cycle simulator finds **1.3–1.8× Coffin-Manson damage
 reduction**, not 36×. The Norris-Landzberg correction can reach ~2.0×; the model uses the
-Coffin-Manson range. Quote the range, not the best case. The full falsification
+Coffin-Manson range. Quote the range, not the best case. The full verification
 is in `CASE-STUDY.md`.
 
 ## What is measured, what is modelled
@@ -54,7 +54,7 @@ is in `CASE-STUDY.md`.
 
 No number here is presented as a measurement when it is a model input.
 
-## The falsification, in one table
+## The verification, in one table
 
 4-GPU node, $670.75/node/yr base case:
 
@@ -104,7 +104,7 @@ not the 1.3–1.8× range.
   Utilization is a different business:
   gross revenue at list price is not a like-for-like saving.
 
-The full comparison, the three falsifiers, and the ownership test are in
+The full comparison, the three verifiers, and the ownership test are in
 `THREE-CASES.md`. Each case has its own code and self-tests.
 
 ## Quickstart
@@ -154,7 +154,7 @@ THREE-OUTREACH.md    drafts for all three founders (not posted)
 TARGETS.md           who this is for, and why liquid-cooled fleets are excluded
 X-THREAD-V2.md       the current public thread: laptop first, then the fleets
 X-THREAD.md          earlier numbers-first thread, kept for comparison
-code/case.py         both legs, break-even, sensitivity, falsification
+code/case.py         both legs, break-even, sensitivity, verification
 code/cycling.py      rainflow / Coffin-Manson / Norris-Landzberg / Miner
 code/fleet_model.py  fan affinity model, standalone
 code/lambda_case.py  Lambda energy / fatigue / capacity model, self-tested

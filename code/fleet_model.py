@@ -159,7 +159,7 @@ def main() -> None:
     print()
     print("Real cycle counting needs the temperature trace, not a guess:")
     print("  cycling.py  rainflow (ASTM E1049-85) + Coffin-Manson + Norris-Landzberg")
-    print("  case.py     both legs composed, break-even and falsification")
+    print("  case.py     both legs composed, break-even and verification")
     print()
     print("On this machine's own 1.67 h trace:")
     print("  109 cycles, mean dT 5.9 C, 65.5 per hour")

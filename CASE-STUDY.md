@@ -21,7 +21,7 @@ conditions under which it fails.
 | fan energy | affinity law `P ∝ duty³`, marginal PUE | $/node/yr | physics, one uncertain input |
 | thermal fatigue | swing-ratio scenario; rainflow simulator in `cycling.py` | $/node/yr | conditional on three assumptions, and R is not measured |
 | composition | sum, then solve for fleet size | $/yr | arithmetic |
-| falsification | bound each leg, solve for required attribution | — | the actual deliverable |
+| verification | bound each leg, solve for required attribution | — | the actual deliverable |
 
 The interesting question is not *"is it 7 figures?"* It is
 *"7 figures at what fleet size, and which assumption has to be true?"*
@@ -165,7 +165,7 @@ rounding error next to it.
 
 ---
 
-## 5. Falsification
+## 5. Verification
 
 The fatigue leg is bounded. You cannot avoid more failures than occur:
 

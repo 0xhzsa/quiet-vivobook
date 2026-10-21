@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-case.py - the capstone. One model, both legs, falsifiable.
+case.py - the capstone. One model, both legs, verifiable.
 
 The claim under test (0xAlcibiades, 2025-07-06):
 
@@ -199,10 +199,10 @@ def sensitivity(node: NodeClass, tariff=TARIFF, pue=PUE):
 
 
 # ---------------------------------------------------------------------------
-# falsification - what would kill the claim
+# verification - what would kill the claim
 # ---------------------------------------------------------------------------
 
-def falsify(node: NodeClass, fleet: int, tariff=TARIFF, pue=PUE, target=TARGET):
+def verify(node: NodeClass, fleet: int, tariff=TARIFF, pue=PUE, target=TARGET):
     """The gap, and the attribution share that would be needed to close it.
 
     The fatigue leg is bounded: even with an infinite life extension it can
@@ -361,7 +361,7 @@ def main():
 
     rule("4. WHAT WOULD MAKE THE CLAIM FALSE")
     for fleet in (500, 1000, 5000):
-        f = falsify(GPU4, fleet, args.tariff, args.pue, args.target)
+        f = verify(GPU4, fleet, args.tariff, args.pue, args.target)
         if f["gap"] <= 0:
             print("  %6d nodes: need %7.2f $/node, fan alone gives %7.2f -> met by fan power"
                   % (fleet, f["need"], f["fan"]))

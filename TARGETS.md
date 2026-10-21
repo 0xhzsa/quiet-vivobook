@@ -110,7 +110,7 @@ The 18,000-GPU row assumes the whole lease is air-cooled. The cost column above
 is the **R=36 best case**; at the simulator's 1.3–1.8× Coffin-Manson, ATL02 is
 **$1.23–1.39M**, ATL02 14 MW is **$1.43–1.62M**, and the 18,000-GPU lease is
 **$2.35–2.65M**. The case prints the
-2D falsification table: at 300 W fans and <50 % air-cooled share, the 7-figure
+2D verification table: at 300 W fans and <50 % air-cooled share, the 7-figure
 claim is false.
 
 Lead with ATL02, not the lease. The post is in **`LAMBDA-OUTREACH.md`**.

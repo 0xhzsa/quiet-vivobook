@@ -100,7 +100,7 @@ Modal's direct row in the headline is therefore zero.
 
 ---
 
-## 4. The falsifiers
+## 4. The verifiers
 
 Each case has one number that can kill it. They are different numbers.
 

@@ -1,4 +1,4 @@
-# The thread, final: laptop as GPU simulator — 6 posts, ≤280 chars each
+# The thread, final: laptop as GPU simulator â€” 6 posts, â‰¤280 chars each
 
 Style: Matty Mo. Bold. Direct. No filler. Every word earns its place.
 
@@ -97,8 +97,8 @@ Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before postin
 | **Lambda** | [@stephenbalaban](https://x.com/stephenbalaban) | [@LambdaAPI](https://x.com/LambdaAPI) | CTO + company |
 | **Together** | [@vipulved](https://x.com/vipulved) | [@togethercompute](https://x.com/togethercompute) | CEO + company |
 | **Modal** | [@bernhardsson](https://x.com/bernhardsson) | [@modal](https://x.com/modal) | CEO + company |
-| **quiet-lab** | [@0xAlcibiades](https://x.com/0xAlcibiades) | — | upstream maintainer, 120W to 15W |
-| **Gigawatt** | [@kiankyars](https://x.com/neuralkian) | — | course: PUE, cooling, power |
+| **quiet-lab** | [@0xAlcibiades](https://x.com/0xAlcibiades) | â€” | upstream maintainer, 120W to 15W |
+| **Gigawatt** | [@kiankyars](https://x.com/neuralkian) | â€” | course: PUE, cooling, power |
 
 ## Approval
 

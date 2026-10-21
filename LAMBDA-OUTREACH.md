@@ -41,7 +41,7 @@ Why this order:
 > fans and <50% air-cooled share, the 7-figure number is not supported by the
 > ideal fan curve alone.
 
-Why: it proves the work is falsifiable, not a pitch. The failure condition is
+Why: it proves the work is verifiable, not a pitch. The failure condition is
 the most credible line in the thread.
 
 ---

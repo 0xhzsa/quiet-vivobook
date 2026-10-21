@@ -367,7 +367,7 @@ The ranking is the same as the first two cases: **fan wattage dominates**.
 Ownership is the new second-order term, and it is the one that decides whether
 the claim routes to Together at all.
 
-### The 2D falsification table
+### The 2D verification table
 
 Direct saving at 100 % ownership, by fleet size and fan wattage:
 

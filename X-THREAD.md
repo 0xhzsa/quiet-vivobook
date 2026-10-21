@@ -175,7 +175,7 @@ server measurement says 87.5 %. That gap is the argument.
 
 **12/12**
 
-> Code, math, falsification: https://github.com/0xhzsa/quiet-vivobook
+> Code, math, verification: https://github.com/0xhzsa/quiet-vivobook
 >
 > If you run an air-cooled GPU cloud and control the BMC, I'll send the model.
 > One reading replaces the load-bearing physical guess.
@@ -194,7 +194,7 @@ server measurement says 87.5 %. That gap is the argument.
 >
 > 24k H100s ≈ **$2.9–3.1M/yr**. The seven-figure line is **~954–1,036 nodes**.
 >
-> Code + model + falsification: https://github.com/0xhzsa/quiet-vivobook
+> Code + model + verification: https://github.com/0xhzsa/quiet-vivobook
 
 ## Do not tag (Crusoe)
 

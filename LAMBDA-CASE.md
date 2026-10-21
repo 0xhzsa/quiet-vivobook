@@ -374,7 +374,7 @@ This is the honest shape of the claim:
 - **At 300 W, all the lease air-cooled:** the energy-only physics does not clear
   $1M; the full claim is $1.98M and depends on the fatigue leg.
 
-### The 2D falsification table
+### The 2D verification table
 
 Total saving at 18,000 GPUs, by air-cooled share and fan wattage:
 

@@ -22,7 +22,7 @@ The short version:
 > **1.1 MW**, which at Lambda's own $3.99/GPU-hr is **$18.3M/yr** of capacity.
 >
 > The 18,000-GPU Nvidia lease is **$2.35–2.65M/yr** direct at 1.3–1.8×
-> (**$3.40M** at R=36) if the whole lease is air-cooled. The 2D falsification table is fan wattage × air-cooled share: at
+> (**$3.40M** at R=36) if the whole lease is air-cooled. The 2D verification table is fan wattage × air-cooled share: at
 > 300 W and <50 % air-cooled, the seven-figure claim is false.
 >
 > One BMC fan-power reading from ATL02 would replace the model's only
@@ -51,7 +51,7 @@ The short version:
 > means **~85–96 %** of the fleet's power bill. One question decides it: who
 > pays the power bill?
 >
-> Code + falsification: https://github.com/0xhzsa/quiet-vivobook
+> Code + verification: https://github.com/0xhzsa/quiet-vivobook
 
 ### Post 2 (follow-up in the same thread)
 
@@ -75,7 +75,7 @@ The short version:
 > the saving is Hypertec's. One BMC fan-power reading and one answer on the power
 > contract would settle it.
 >
-> Code and the full falsification table: https://github.com/0xhzsa/quiet-vivobook. No ask beyond the
+> Code and the full verification table: https://github.com/0xhzsa/quiet-vivobook. No ask beyond the
 > datapoint.
 
 **The ask:** the air-cooled H100/H200 node count, and who pays the meter.
@@ -124,7 +124,7 @@ $9.1M at R=36, and it belongs to the providers."
       17, `portfolio` 10, `case` 12, `cycling` 17, `targets` 12 — 97 checks.
 - [x] Live repo URL: https://github.com/0xhzsa/quiet-vivobook
 - [ ] The post tags **one founder + one company**, not three.
-- [ ] The falsifier is in the same thread, not buried in the repo.
+- [ ] The verifier is in the same thread, not buried in the repo.
 - [ ] No fan wattage is presented as measured. It is a 1 kW input.
 - [ ] No liquid GPU is counted. The 36k GB200 is explicitly excluded.
 - [ ] Together's ownership share is described as unknown, not assumed.
