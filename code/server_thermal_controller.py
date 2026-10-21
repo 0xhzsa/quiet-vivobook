@@ -603,6 +603,22 @@ def selftest() -> int:
     check("fan power is monotonic in duty",
           all(powers[i] < powers[i + 1] for i in range(100)))
 
+    # 10. The two operating points must be ordered correctly: the knee is a
+    #     lower duty with a bigger fan saving and a worse throughput cost.
+    knee = safe_operating_point(node, node.n_gpus * node.gpu_tdp_w * 0.8, 83.0)
+    safe = throughput_safe_point(node, node.n_gpus * node.gpu_tdp_w * 0.8)
+    check("the knee duty is lower than the throughput-safe duty",
+          knee["min_duty"] < safe["min_duty"])
+    check("the knee saves more fan power than the safe point",
+          knee["saved_pct"] > safe["saved_pct"])
+    check("the knee costs more throughput than the safe point",
+          knee["throughput_cost"] > safe["throughput_cost"])
+    check("the throughput-safe point costs no throughput",
+          abs(safe["throughput_cost"]) < 1e-12,
+          "got %.6f" % safe["throughput_cost"])
+    check("the throughput-safe point holds the full-boost temperature",
+          safe["die_temp"] <= 75.0 + 1e-6, "got %.2f" % safe["die_temp"])
+
     print("\n%d checks passed" % ok)
     return ok
 
@@ -652,26 +668,37 @@ def main():
 
     op = safe_operating_point(node, node.n_gpus * node.gpu_tdp_w * args.load,
                               args.target_temp)
-    print("  OPERATING POINT at %.0f%% GPU load:" % (100 * args.load))
+    label = ("full-boost safe" if args.target_temp <= THROTTLE_START_C
+             else "throttle knee")
+    print("  OPERATING POINT at %.0f%% GPU load (%s):" % (100 * args.load, label))
     print("    duty          %.1f%%" % (100 * op["min_duty"]))
     print("    die temp      %.1f C (target %.1f C)" % (op["die_temp"], op["max_die_temp"]))
     print("    fan power     %.1f W (from %.1f W)" % (op["ctrl_fan_w"], op["base_fan_w"]))
     print("    saved         %.1f W = %.2f%% of fan power" % (op["saved_w"], op["saved_pct"]))
-    print("    throughput    %.2f%% cost (die at the throttle knee)" % (100 * op["throughput_cost"]))
+    print("    throughput    %.2f%% cost" % (100 * op["throughput_cost"]))
     print()
 
-    print("  CROSS-CHECK against the independent upstream measurement:")
-    v = validate_quiet_lab()
+    # The cross-check is at the throttle knee, always. That is the point
+    # where the thermal model independently determines the duty and the fan
+    # law independently determines the power, so the two are comparable.
+    knee = safe_operating_point(node, node.n_gpus * node.gpu_tdp_w * args.load, 83.0)
+    print("  CROSS-CHECK against the independent upstream measurement")
+    print("    (always at the 83 C knee, where the thermal model sets the duty)")
     print("    quiet-lab measured 120 W -> 15 W on a 64-core server: 87.5%")
     print("    this model at %.0f%% GPU load:                      %.2f%%" %
-          (100 * args.load, op["saved_pct"]))
-    gap = abs(op["saved_pct"] - 87.5)
+          (100 * args.load, knee["saved_pct"]))
+    gap = abs(knee["saved_pct"] - 87.5)
     print("    gap: %.2f points, from models built on different data" % gap)
     print()
     print("  The fan law is a fit to the upstream measurement. The thermal")
     print("  model is an independent construction. They agree, which is the")
     print("  only real evidence in this package that the 8-GPU numbers are")
     print("  not just the measured number with new words on it.")
+    print()
+    print("  Note the gap between the two rows above. The knee is where the")
+    print("  fan saving is largest and the throughput cost is worst. The")
+    print("  shipped duty is where the throughput cost is zero. Quoting only")
+    print("  the knee is how a fan controller becomes a revenue-loss project.")
 
 
 if __name__ == "__main__":

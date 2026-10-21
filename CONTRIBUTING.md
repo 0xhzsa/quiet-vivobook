@@ -11,14 +11,14 @@ There is no test framework. Every module that has anything to test carries a
 ```powershell
 uv run --no-project python code/fanlaw.py --selftest                 # 15 checks
 uv run --no-project python code/cycling.py --selftest                # 17 checks
-uv run --no-project python code/case.py --selftest                   # 12 checks
+uv run --no-project python code/case.py --selftest                   # 16 checks
 uv run --no-project python code/targets.py --selftest                # 12 checks
 uv run --no-project python code/lambda_case.py --selftest            # 13 checks
 uv run --no-project python code/together_case.py --selftest          # 16 checks
 uv run --no-project python code/modal_case.py --selftest             # 17 checks
 uv run --no-project python code/portfolio.py --selftest              # 10 checks
 uv run --no-project python code/throughput.py --selftest             # 21 checks
-uv run --no-project python code/server_thermal_controller.py --selftest
+uv run --no-project python code/server_thermal_controller.py --selftest  # 11 checks
 ```
 
 `uv run --no-project` runs the scripts without creating a project
@@ -45,7 +45,7 @@ still agree with the code.
 It prints one summary line:
 
 ```
-0 hard failure(s), 4 warning(s)
+0 hard failure(s), 0 warning(s)
 ```
 
 - **Hard failures** mean the arithmetic or the code is wrong. The audit exits
@@ -54,6 +54,11 @@ It prints one summary line:
   overstating the measured fan saving, `case.py`'s R=36 scenario versus the
   simulator's 1.3–1.8× range, and the throughput term. They are expected.
   `--strict` turns them into failures, and is not what CI runs.
+
+The audit's last section checks that the documents still say what the code
+says. It pins specific strings in `README.md`, `CASE-STUDY.md`,
+`THREE-CASES.md` and `MODAL-CASE.md`, and it fails if any of them changes
+without the check changing with it.
 
 ## 3. Code style
 

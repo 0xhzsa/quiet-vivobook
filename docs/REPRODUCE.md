@@ -62,22 +62,38 @@ uv run --no-project python code/throughput.py --selftest
 uv run --no-project python code/server_thermal_controller.py --selftest
 
 # the 8-GPU simulation, calibrated to the upstream 120 W -> 15 W measurement
-uv run --no-project python code/server_thermal_controller.py --node gpu8 --duration 120
+uv run --no-project python code/server_thermal_controller.py --node gpu8
+uv run --no-project python code/server_thermal_controller.py --node gpu8 --target-temp 75
 ```
 
-Expected from the last command:
+Expected from the first command — the 83 °C throttle knee at 80 % GPU load:
 
 ```
-Fan: 880.98W -> 121.14W (save 759.84W = 86.25%)
-Work: 1.0 -> 0.9485 (cost 5.15%)
-Temp: 63.75C -> 89.73C
-Annual fan saving: $839/node
+OPERATING POINT at 80% GPU load:
+  duty          35.3%
+  die temp      83.0 C (target 83.0 C)
+  fan power     122.5 W (from 881.0 W)
+  saved         758.5 W = 86.10% of fan power
+  throughput    26.67% cost (die at the throttle knee)
 ```
 
-**The duration is part of the claim.** `--duration 120` is the operating point
-the published 5.15 % comes from. The default `--duration 300` runs the same
-model longer, into thermal throttling, and reports a much larger cost
-(31.41 % at 300 s). Anyone quoting the 5.15 % must quote the duration with it.
+And from the second — the throughput-safe operating point, which is what the
+model ships:
+
+```
+  duty          52.9%
+  die temp      75.0 C (target 75.0 C)
+  fan power     244.9 W (from 881.0 W)
+  saved         636.1 W = 72.20% of fan power
+  throughput    0.00% cost
+```
+
+**The target temperature is part of the claim.** `--target-temp 83` is the
+throttle knee and maximises the fan saving at the cost of a quarter of the
+work; `--target-temp 75` holds full boost and costs nothing. Both are
+steady-state solves, not timed runs: the model is solved analytically and
+verified against its own time-domain integration, because a 120 s run at 35 %
+duty has not settled and reports a die temperature several degrees too low.
 
 `code/cycling.py --replay data/telemetry-sample.csv` replays the committed
 1.67 h trace: 109 full cycles, mean ΔT 5.9 °C, 65.5 cycles/hour, and 15 % of
@@ -266,14 +282,16 @@ Reference points from the model, for calibration of expectations:
 | throughput estimate | value | provenance |
 |---|---:|---|
 | measured laptop A/B | 6.92 % | measured, this machine |
-| simulated 8-GPU model at 95 % → 35 %, 120 s | 5.15 % | simulated, calibrated |
+| simulated 8-GPU model, 83 °C throttle knee | 26.67 % | simulated |
+| simulated 8-GPU model, 75 °C throughput-safe duty | 0.00 % | simulated |
+| throughput ledger, 8-GPU scenario constant | 5.15 % | simulated (`code/throughput.py`) |
 | simulated laptop MPC controller | 20.6 % | simulated |
 | break-even on a saturated fleet | 0.50 % | arithmetic |
 
 If the measured loss is above the break-even on a saturated fleet, the honest
-answer is that the duty has to be gentler — 95 % → 50 % instead of 95 % → 35 %
-— or the fleet has to have spare capacity. Both of those are decisions, and
-they are better than a spreadsheet.
+answer is that the duty has to be gentler — hold the die at the point where
+the GPU still runs at full boost — or the fleet has to have spare capacity.
+Both of those are decisions, and they are better than a spreadsheet.
 
 ### 3.7 Publish the artifact
 

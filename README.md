@@ -43,7 +43,7 @@ Provenance is one of four words, and it is used strictly:
 | 8-GPU node, 80 % GPU load, die held at 75 °C — the shipped operating point | duty 52.9 %; fan 881.0 W → 244.9 W; **72.20 %** of fan power saved; **0.00 %** throughput cost | simulated, calibrated | `code/server_thermal_controller.py --node gpu8 --target-temp 75` |
 | 8-GPU node at the 83 °C throttle knee | duty 35.3 %; **86.10 %** saved; **26.67 %** throughput cost | simulated | `code/server_thermal_controller.py --node gpu8` |
 | Model against the upstream measurement | 86.10 % modelled vs 87.5 % measured — 1.4 points apart | cross-check | the same command, and the self-test that asserts it |
-| Throughput-cost ledger | 5.15 % (8-GPU scenario), 6.92 % (laptop), 20.60 % (laptop MPC) | simulated, and measured for the laptop | `code/throughput.py` |
+| Throughput-cost ledger | 0.00 % at the shipped duty; 26.67 % at the 83 °C knee; 6.92 % measured on the laptop; 20.60 % (laptop MPC) | simulated, and measured for the laptop | `code/throughput.py` |
 | Fatigue damage reduction, controlled vs stock | 1.3–1.8× Coffin-Manson; ≈2.0× with the Norris-Landzberg mean-temperature term | simulated | `code/cycling.py` (17 self-tests) |
 | Lambda ATL02, 1,176 nodes | energy $707,449/yr; $0.88–1.04M/yr at 1.3–1.8×; $1,427,749/yr at R=36 | modelled | `code/lambda_case.py`, `code/portfolio.py` |
 | Together, 8,000 air-cooled GPUs, 100 % owned | energy $601,572/yr; $0.75–0.88M/yr at 1.3–1.8×; $1,214,072/yr at R=36 | modelled, conditional on ownership | `code/together_case.py`, `code/portfolio.py` |
