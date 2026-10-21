@@ -29,15 +29,20 @@ from __future__ import annotations
 
 import argparse
 import math
-
 import fanlaw
+import thermal_model
+
+# The throughput-safe operating point, DERIVED from the thermal solve rather
+# than hard-coded. A change to the thermal model moves the fleet numbers
+# with it, which is the whole point of computing it.
+DUTY_CTRL = thermal_model.shipped_duty()
+
 
 HOURS = 8760.0
 GPUS_PER_NODE = 8
 NODE_KW = 10.2
 FAN_W = 1000.0
 DUTY_BASE = 0.95
-DUTY_CTRL = 0.529
 TARIFF = 0.08
 PUE = 1.35
 AFR = 0.03
@@ -166,20 +171,28 @@ def utilization_gain(gpus: float, util_base: float = 0.35,
     }
 
 
-def qualification(owns_datacenter: bool, owns_nodes: bool,
-                  controls_bmc: bool, pays_power: bool) -> str:
-    """The four questions that decide whether the claim routes to a target.
+def meter_payer(owns_datacenter: bool, owns_nodes: bool,
+                controls_bmc: bool, pays_power: bool) -> str:
+    """Where the fan saving actually lands.
 
     Building and node ownership are context, not gates: a lessee can control
     the BMC and pay the meter (Lambda). The decisive pair is access and
-    payment. A target with access but no power bill is conditional, because
-    the saving exists but belongs to the landlord.
+    payment, and the answer is a name, not a verdict on a company:
+
+      "operator"  controls the BMC and pays the meter. The saving is theirs.
+      "partner"   controls the BMC, someone else pays. The saving is theirs.
+      "provider"  neither. The saving belongs to whoever owns the nodes.
+
+    The point of the refactor: "this company is disqualified" is a claim
+    about somebody else's business and it is not what the physics says. "the
+    fan tray and the meter sit over there" is what the physics says, and it
+    is actionable.
     """
     if controls_bmc and pays_power:
-        return "qualified"
+        return "operator"
     if controls_bmc and not pays_power:
-        return "conditional"
-    return "disqualified"
+        return "partner"
+    return "provider"
 
 
 def breakeven_gpus(target: float = 1_000_000.0, **kwargs) -> int:
@@ -216,26 +229,26 @@ def selftest() -> int:
 
     print("self-test: the fan bill behind the fleet")
     b = fan_bill(g)
-    near("energy", b["energy"], 3_622_668, 1)
+    near("energy", b["energy"], 3_623_912, 1)
     near("fatigue", b["fatigue"], 3_688_475, 1)
-    near("total", b["total"], 7_311_143, 1)
-    near("capacity MW", b["capacity_mw"], 3.829135, 1e-5)
+    near("total", b["total"], 7_312_387, 1)
+    near("capacity MW", b["capacity_mw"], 3.830450, 1e-5)
     near("extra nodes", b["extra_nodes"], 375, 0)
     near("extra GPUs", b["extra_gpus"], 3_000, 0)
     near("capacity revenue", b["revenue"], 62_270_986, 1)
-    near("share of $1B ARR", b["total"] / 1e9, 0.00731114, 1e-7)
+    near("share of $1B ARR", b["total"] / 1e9, 0.00731239, 1e-7)
 
-    print("self-test: pass-through and qualification")
+    print("self-test: pass-through and where the meter sits")
     p = pass_through(b["total"], 1.0)
-    near("providers keep", p["provider"], 7_311_143, 1)
+    near("providers keep", p["provider"], 7_312_387, 1)
     near("Modal keeps", p["platform"], 0.0, 1e-9)
     near("GPUs for $1M, anyone", breakeven_gpus(), 6_592, 0)
-    near("qualification: no ownership",
-         qualification(False, False, False, False) == "disqualified", 1, 0)
-    near("qualification: landlord pays",
-         qualification(True, True, True, False) == "conditional", 1, 0)
-    near("qualification: full ownership",
-         qualification(True, True, True, True) == "qualified", 1, 0)
+    near("meter: no ownership",
+         meter_payer(False, False, False, False) == "provider", 1, 0)
+    near("meter: landlord pays",
+         meter_payer(True, True, True, False) == "partner", 1, 0)
+    near("meter: full ownership",
+         meter_payer(True, True, True, True) == "operator", 1, 0)
 
     print("self-test: the lever Modal actually has")
     u = utilization_gain(g, 0.35, 0.60)
@@ -311,8 +324,8 @@ def main() -> int:
           f"= ${u['revenue']:,.0f}/yr gross at list")
     print("  (this is the business model, not a fan saving)")
 
-    print("\nqualification test")
-    q = qualification(False, False, False, False)
+    print("\nwhere the meter sits")
+    q = meter_payer(False, False, False, False)
     print(f"  owns data center: no | owns nodes: no | controls BMC: no | "
           f"pays power: no")
     print(f"  verdict: {q.upper()}")

@@ -51,6 +51,7 @@ import math
 from dataclasses import dataclass, replace
 
 import fanlaw
+import thermal_model
 import throughput
 
 HOURS = 8760.0
@@ -100,7 +101,7 @@ SERVER_1U = NodeClass(
 )
 GPU4 = NodeClass(
     name="4-GPU node",
-    fan_w=400.0, duty_base=0.90, duty_ctrl=0.529,
+    fan_w=400.0, duty_base=0.90, duty_ctrl=thermal_model.shipped_duty(),
     replacement=25000.0, afr=0.03, fatigue_share=0.35,
     swing_base=12.0, swing_ctrl=2.0, cycling_source="assumed",
     throughput_cost=0.0, throughput_source="measured",
@@ -109,7 +110,7 @@ GPU4 = NodeClass(
 )
 GPU8 = NodeClass(
     name="8-GPU dense node",
-    fan_w=1000.0, duty_base=0.95, duty_ctrl=0.529,
+    fan_w=1000.0, duty_base=0.95, duty_ctrl=thermal_model.shipped_duty(),
     replacement=60000.0, afr=0.03, fatigue_share=0.35,
     swing_base=12.0, swing_ctrl=2.0, cycling_source="assumed",
     throughput_cost=0.0, throughput_source="measured",

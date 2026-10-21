@@ -18,7 +18,7 @@ uv run --no-project python code/together_case.py --selftest          # 16 checks
 uv run --no-project python code/modal_case.py --selftest             # 17 checks
 uv run --no-project python code/portfolio.py --selftest              # 10 checks
 uv run --no-project python code/throughput.py --selftest             # 21 checks
-uv run --no-project python code/server_thermal_controller.py --selftest  # 11 checks
+uv run --no-project python code/server_thermal_controller.py --selftest  # 16 checks
 ```
 
 `uv run --no-project` runs the scripts without creating a project

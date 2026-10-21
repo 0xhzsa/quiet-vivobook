@@ -1,4 +1,4 @@
-# Three founder-led cases: one qualified, one conditional, one disqualified
+# Three founder-led cases: one arithmetic, three different meters
 
 > The same arithmetic, applied to three fleets, produces three different
 > answers. That is the point. A fan controller needs three things: a fan, a
@@ -11,8 +11,8 @@ This is the consolidated result of the three founder-led cases:
 | case | anchor | direct saving | capacity value | verdict |
 |---|---|---:|---:|---|
 | **Lambda** | ATL02 12 MW, 9,408 GPUs | **$1.23–1.39M/yr** | **$18.3M/yr** | **qualified** |
-| **Together** | 8,000 H100/H200, 1,000 nodes | **$1.04–1.18M/yr** at 100 % owned | **$15.6M/yr** | **conditional** |
-| **Modal** | 48,177 derived H100-equivalents | **$0** to Modal | **$0** to Modal | **disqualified** |
+| **Together** | 8,000 H100/H200, 1,000 nodes | **$0.75[‐‑‒–—―-]0.88M/yr** at 1.3[‐‑‒–—―-]1.8[‐‑‒–—―-] | **$10.4M/yr** | **operator or partner** |
+| **Modal** | 48,177 derived H100-equivalents | **$0** to Modal | **$0** to Modal | **$7.31M at the 13 providers** |
 
 The direct range is the cycle simulator's 1.3–1.8× Coffin-Manson scenario. At
 the R=36 best case, Lambda rises to **$1.43M** and Together to **$1.21M**.
@@ -42,10 +42,10 @@ developer-visible GPU platform of the cycle.
 | pays the fan power | **assumed**; not public | partly; partner-dependent | no |
 | public price | $3.99/GPU-hr H100 | $3.99/GPU-hr H100 | $3.95/GPU-hr H100 |
 | founder reachable | @stephenbalaban | @vipulved | @bernhardsson |
-| verdict | **qualified** | **conditional** | **disqualified** |
+| where the meter sits | **the operator** | **operator or partner** | **the node providers** |
 
 Lambda's BMC and power-payment cells are **assumptions**, not disclosures. The
-verdict is conditional on them. Together's are unknown. The code's `verdict()`
+is assumed, not disclosed. Together's are unknown. The code's `meter_payer()`
 is a filter, not due diligence. The table is the model's answer under the stated
 assumptions.
 
@@ -62,8 +62,8 @@ Every case answers the same four questions. The last two decide the verdict.
 | target | site | node control | BMC | pays fan power | verdict |
 |---|---|---|---|---|---|
 | Lambda | lease (EdgeConneX) | yes | yes | yes | **qualified** |
-| Together | partner + own | partial | yes | partial | **conditional** |
-| Modal | none | no | no | no | **disqualified** |
+| Together | partner + own | partial | yes | partial | **operator or partner** |
+| Modal | none | no | no | no | **the node providers** |
 
 A controller without a BMC is a software idea. A controller with a BMC but
 without the power bill is a gift to the landlord. That is the whole difference
@@ -160,7 +160,7 @@ Modal already sells.
    ownership boundary.
 2. **Lambda is the clean case.** One operating air-cooled site, one public
    price, one founder. $1.43M/yr direct and $12.2M/yr of capacity at ATL02.
-3. **Together is the conditional case.** The physics works on the air-cooled
+3. **Together splits the bill.** The physics works on the air-cooled
    H100/H200 fleet, but the dollars only route to Together on the share of the
    fleet whose power it pays for. The 36k headline is a liquid trap.
 4. **Modal is the wrong target.** The fan bill is real but sits on 13 providers'

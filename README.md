@@ -62,7 +62,7 @@ The quote has two legs and one missing word: **scale**.
 | leg | method | unit | status |
 |---|---|---|---|
 | fan energy | the calibrated affine-cubic law, not the raw affinity law | $/node/yr | physics, one uncertain input (the fan tray wattage) |
-| thermal fatigue | swing-ratio scenario; rainflow simulator in `code/cycling.py` | $/node/yr | conditional on three assumptions, and R is not measured |
+| thermal fatigue | swing-ratio scenario; rainflow simulator in `code/cycling.py` | $/node/yr | depends on three assumptions, and R is not measured |
 | composition | sum, then solve for fleet size | $/yr | arithmetic |
 | throughput cost | 0.00 % at the shipped duty, 26.67 % at the throttle knee, 6.92 % measured on the laptop | $/node/yr | debited against the saving, see `code/throughput.py` |
 
@@ -96,8 +96,8 @@ fleets and gets three different answers:
 | fleet | energy leg | 1.3–1.8× Coffin-Manson | at R=36 | verdict |
 |---|---:|---:|---:|---|
 | Lambda ATL02, 1,176 nodes | $707,449/yr | $0.88–1.04M/yr | $1,427,749/yr | **qualified** |
-| Together, 8,000 air-cooled GPUs, 100 % owned | $601,572/yr | $0.75–0.88M/yr | $1,214,072/yr | **conditional** |
-| Modal | $0 to Modal | $0 to Modal | $0 to Modal | **disqualified** |
+| Together, 8,000 air-cooled GPUs, 100 % owned | $601,779/yr | $0.75[‐‑‒–—―-]0.88M/yr | $1,214,279/yr | **operator or partner** |
+| Modal | $0 to Modal | $0 to Modal | $0 to Modal | **$7.31M at its 13 node providers** |
 
 At the shipped duty, Together at 8,000 GPUs needs **134 %** of the fleet's fan
 power at 1.3× and **113 %** at 1.8× to reach $1M — so the eight-thousand-GPU
@@ -134,7 +134,7 @@ uv run --no-project python code/together_case.py --selftest          # 16 checks
 uv run --no-project python code/modal_case.py --selftest             # 17 checks, Modal case
 uv run --no-project python code/portfolio.py --selftest              # 10 checks, the three verdicts
 uv run --no-project python code/throughput.py --selftest             # 21 checks, throughput cost
-uv run --no-project python code/server_thermal_controller.py --selftest  # 11 checks, the 8-GPU model
+uv run --no-project python code/server_thermal_controller.py --selftest  # 16 checks, the 8-GPU model
 
 # the numbers
 uv run --no-project python code/case.py                              # per node, per year
@@ -176,8 +176,8 @@ README.md              this file
 CASE-STUDY.md          the full argument, the equations and the failure conditions
 THREE-CASES.md         the three founder cases side by side, and the verdicts
 LAMBDA-CASE.md         case 2: Lambda, qualified, three legs
-TOGETHER-CASE.md       case 3: Together, conditional on ownership
-MODAL-CASE.md          case 4: Modal, disqualified (no fans of its own)
+TOGETHER-CASE.md       case 3: Together, meter shared with partners
+MODAL-CASE.md          case 4: Modal, the fan bill sits with its node providers
 TARGETS.md             who this is for, and why liquid-cooled fleets are excluded
 LAMBDA-OUTREACH.md     draft X posts for @stephenbalaban + @LambdaAPI (not posted)
 THREE-OUTREACH.md      drafts for all three founders (not posted)

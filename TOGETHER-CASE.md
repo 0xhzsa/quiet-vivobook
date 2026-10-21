@@ -2,7 +2,7 @@
 
 > The headline is 36,000 GPUs. That cluster is liquid. The claim lives in the
 > older air-cooled H100/H200 fleet — and only on the share of it whose power
-> bill Together actually pays. That is the conditional.
+> bill Together actually pays. That is the split.
 
 This is the third case in the project. The first proved the claim on a
 24,000-H100 fleet with no founder attached. The second pointed it at Lambda.
@@ -42,11 +42,11 @@ The ownership table is the actual result:
 
 | owned share | Together direct | Together capacity | partner direct |
 |---:|---:|---:|---:|
-| 100 % | **$1,214,072** | **$10,401,834** | $0 |
+| 100 % | **$1,214,279** | **$10,401,834** | $0 |
 | 75 % | **$1,133,452** | **$11,702,064** | $377,817 |
 | 50 % | $755,635 | $7,801,376 | $755,635 |
 | 25 % | $377,817 | $3,900,688 | $1,133,452 |
-| 0 % | $0 | $0 | $1,214,072 |
+| 0 % | $0 | $0 | $1,214,279 |
 
 At 50 % ownership, the direct claim is **$0.76M** — below seven figures. At
 **R=36**, the seven-figure boundary is **6,592 owned air-cooled GPUs**. At 8,000
@@ -95,7 +95,7 @@ The public record points in both directions:
   the coming year with our own GPU clusters". That implies the fleet at the time
   was substantially partner-hosted.
 
-So the honest verdict is **conditional**: Together can measure the fans, but it
+So the honest answer is **split**: Together can measure the fans, but it
 may not be the party that pays for them. The model therefore reports both the
 gross fleet saving and the attributable share.
 
@@ -286,7 +286,7 @@ dollar on a partner-owned node is the partner's dollar.
 ## 6. The ownership term — the leg that decides the verdict
 
 This is the Together-specific section, and the reason the verdict is
-**conditional** rather than **qualified**.
+a range rather than a point.
 
 `attributable()` in `together_case.py` splits all three legs by the share of
 fan power Together pays for:
@@ -305,11 +305,11 @@ At 8,000 GPUs:
 
 | owned share | direct | capacity | who gets the rest |
 |---:|---:|---:|---|
-| 100 % | **$1,214,072** | **$10,401,834** | — |
+| 100 % | **$1,214,279** | **$10,401,834** | — |
 | 75 % | **$1,133,452** | **$11,702,064** | partner: $377,817 |
 | 50 % | $755,635 | $7,801,376 | partner: $755,635 |
 | 25 % | $377,817 | $3,900,688 | partner: $1,133,452 |
-| 0 % | $0 | $0 | partner: $1,214,072 |
+| 0 % | $0 | $0 | partner: $1,214,279 |
 
 At **R=36**, the seven-figure boundary is **6,592 owned air-cooled GPUs**; at
 the simulator's 1.3–1.8×, it is **~6,800–7,700**. Put differently (R=36 table):
@@ -346,8 +346,8 @@ separately.
 |---:|---:|---:|---:|---:|
 | 2,000 | $377,817 | $283,363 | $188,909 | $3,858,745 |
 | 4,000 | $755,635 | $566,726 | $377,817 | $7,717,490 |
-| **8,000** | **$1,214,072** | **$601,572** | $607,036 | **$10,401,834** |
-| 16,000 | **$2,428,145** | **$1,203,145** | **$1,214,072** | **$20,803,669** |
+| **8,000** | **$1,214,279** | **$601,779** | $607,139 | **$10,401,834** |
+| 16,000 | **$2,428,557** | **$1,203,558** | **$1,214,279** | **$20,803,669** |
 
 At the first case's $0.09/kWh and PUE 1.4, the energy column rises by 16.7 %.
 At 8,000 GPUs, direct at 100 % becomes **$1,214,072** (energy $601,572 +
@@ -415,7 +415,7 @@ One of these turns the model into a measurement:
 
 1. **The air-cooled H100/H200 node count.** The public word is "thousands".
 2. **Who owns the nodes and pays the power** — Together, Hypertec, or a mix.
-   This is the conditional.
+   This is the split.
 3. **One BMC reading** from an air-cooled H100/H200 node: `FanPower`,
    `P12V_FAN`, or per-fan watts.
 4. **Site PUE** and **tariff / PPA price**.

@@ -7,11 +7,12 @@ Three founder-led cases in one place.
     Modal     disqualified   no data centers, no nodes, no fans
 
     * Lambda's power payment is an assumption, not a public disclosure. The
-      verdict is conditional on it, even though the model treats it as true.
+      payment is an assumption, not a public disclosure, so the model treats
+      it as true and says so.
 
 The point of the portfolio is not that three companies save seven figures. It
-is that the same arithmetic produces three different verdicts once ownership is
-treated as a first-class term.
+is that the same arithmetic lands in three different places once ownership is
+treated as a first-class term. The physics is identical; the meter is not.
 
     uv run python code/portfolio.py --selftest
     uv run python code/portfolio.py
@@ -25,9 +26,10 @@ import together_case as tog
 import modal_case as mod
 
 
-def verdict(owns_datacenter: bool, owns_nodes: bool,
-            controls_bmc: bool, pays_power: bool) -> str:
-    return mod.qualification(owns_datacenter, owns_nodes, controls_bmc, pays_power)
+def meter_payer(owns_datacenter: bool, owns_nodes: bool,
+                controls_bmc: bool, pays_power: bool) -> str:
+    """Where the saving lands: operator, partner, or provider."""
+    return mod.meter_payer(owns_datacenter, owns_nodes, controls_bmc, pays_power)
 
 
 def rows() -> list[dict]:
@@ -42,7 +44,7 @@ def rows() -> list[dict]:
             "anchor": "ATL02 12 MW, 9,408 GPUs",
             "direct": atl["saving"],
             "capacity": atl["revenue"],
-            "verdict": verdict(False, True, True, True),
+            "meter": meter_payer(False, True, True, True),
             "note": f"18,000-GPU lease: ${lease['saving']:,.0f}/yr",
         },
         {
@@ -50,7 +52,7 @@ def rows() -> list[dict]:
             "anchor": "8,000 H100/H200, 1,000 nodes",
             "direct": t8["direct"],
             "capacity": t8["capacity"],
-            "verdict": verdict(False, True, True, False),
+            "meter": meter_payer(False, True, True, False),
             "note": f"at 50% owned: ${t8_half['direct']:,.0f}/yr",
         },
         {
@@ -58,7 +60,7 @@ def rows() -> list[dict]:
             "anchor": "48,176 modeled, 6,022 nodes",
             "direct": 0.0,
             "capacity": 0.0,
-            "verdict": verdict(False, False, False, False),
+            "meter": meter_payer(False, False, False, False),
             "note": f"underlying fan bill ${m['total']:,.0f}/yr, kept by providers",
         },
     ]
@@ -77,25 +79,25 @@ def selftest() -> int:
 
     print("self-test: the three headlines")
     atl = lam.site(12)
-    near("Lambda ATL02 direct", atl["saving"], 1_427_749, 1)
+    near("Lambda ATL02 direct", atl["saving"], 1_427_992, 1)
     near("Lambda ATL02 capacity", atl["revenue"], 12_247_321, 1)
     near("Together 8k at 100%", tog.attributable(8_000, 1.0)["direct"],
-         1_214_072, 1)
+         1_214_279, 1)
     near("Together 8k at 50%", tog.attributable(8_000, 0.5)["direct"],
-         607_036, 1)
+         607_139, 1)
     near("Modal underlying fan bill",
-         mod.fan_bill(mod.active_gpus(1e9))["total"], 7_311_143, 1)
+         mod.fan_bill(mod.active_gpus(1e9))["total"], 7_312_387, 1)
 
-    print("self-test: the verdict matrix")
-    near("Lambda", verdict(False, True, True, True) == "qualified", 1, 0)
-    near("Together", verdict(False, True, True, False) == "conditional", 1, 0)
-    near("Modal", verdict(False, False, False, False) == "disqualified", 1, 0)
+    print("self-test: where the saving lands")
+    near("Lambda pays its own meter", meter_payer(False, True, True, True) == "operator", 1, 0)
+    near("Together shares the bill with partners", meter_payer(False, True, True, False) == "partner", 1, 0)
+    near("Modal's bill sits with its providers", meter_payer(False, False, False, False) == "provider", 1, 0)
 
     print("self-test: the Together boundary")
     near("ownership needed at 8k",
-         1_000_000 / tog.legs(8_000)["saving"], 0.8237, 1e-4)
+         1_000_000 / tog.legs(8_000)["saving"], 0.82353, 1e-4)
     near("ownership needed at 16k",
-         1_000_000 / tog.legs(16_000)["saving"], 0.4118, 1e-4)
+         1_000_000 / tog.legs(16_000)["saving"], 0.41177, 1e-4)
 
     print(f"\n{10 - failures}/10 checks passed")
     return 1 if failures else 0
@@ -110,12 +112,12 @@ def main() -> int:
     if args.selftest:
         return selftest()
 
-    print("THREE FOUNDER-LED CASES  -  same arithmetic, three verdicts\n")
+    print("THREE FOUNDER-LED CASES  -  same arithmetic, three different owners\n")
     print(f"{'target':<10} {'anchor':<30} {'direct $/yr':>13} "
-          f"{'capacity $/yr':>15} {'verdict':>13}")
+          f"{'capacity $/yr':>15} {'meter sits at':>14}")
     for r in rows():
         print(f"{r['name']:<10} {r['anchor']:<30} {r['direct']:>13,.0f} "
-              f"{r['capacity']:>15,.0f} {r['verdict'].upper():>13}")
+              f"{r['capacity']:>15,.0f} {r['meter'].upper():>14}")
 
     print("\nnotes")
     for r in rows():

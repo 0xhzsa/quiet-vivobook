@@ -293,6 +293,12 @@ answer is that the duty has to be gentler — hold the die at the point where
 the GPU still runs at full boost — or the fleet has to have spare capacity.
 Both of those are decisions, and they are better than a spreadsheet.
 
+One residual inconsistency, flagged rather than hidden:
+`code/throughput.py` still carries a 5.15 % 8-GPU scenario constant from the
+first version of the model. The recalibrated thermal model gives 26.67 % at
+the knee and 0.00 % at the shipped duty, so read that constant as a ledger
+scenario rather than as the model's output.
+
 ### 3.7 Publish the artifact
 
 Commit the raw log and a summary in the shape of

@@ -30,15 +30,20 @@ from __future__ import annotations
 
 import argparse
 import math
-
 import fanlaw
+import thermal_model
+
+# The throughput-safe operating point, DERIVED from the thermal solve rather
+# than hard-coded. A change to the thermal model moves the fleet numbers
+# with it, which is the whole point of computing it.
+DUTY_CTRL = thermal_model.shipped_duty()
+
 
 HOURS = 8760.0
 GPUS_PER_NODE = 8
 NODE_KW = 10.2
 FAN_W = 1000.0
 DUTY_BASE = 0.95
-DUTY_CTRL = 0.529
 TARIFF = 0.08
 PUE = 1.35
 AFR = 0.03
@@ -147,18 +152,18 @@ def selftest() -> int:
 
     print("self-test: algebra")
     near("1 kW node at $0.09 / PUE 1.4",
-         energy_per_node(1000, 0.09, 1.4), 701.83, 0.01)
+         energy_per_node(1000, 0.09, 1.4), 702.08, 0.01)
     near("500 W node at $0.09 / PUE 1.4",
-         energy_per_node(500, 0.09, 1.4), 350.92, 0.01)
+         energy_per_node(500, 0.09, 1.4), 351.04, 0.01)
     near("8-GPU fatigue at R=36", fatigue_per_node(), 612.50, 0.01)
     near("fatigue ceiling", fatigue_per_node(ratio=1e12), 630.00, 0.01)
 
     print("self-test: 18,000-GPU lease")
     l = legs(18_000, 1000, 0.09, 1.4)
     near("nodes", l["nodes"], 2250)
-    near("energy", l["energy"], 1_579_127, 10)
+    near("energy", l["energy"], 1_579_670, 10)
     near("fatigue", l["fatigue"], 1_378_125, 1)
-    near("capacity MW", l["capacity_mw"], 1.4307, 1e-3)
+    near("capacity MW", l["capacity_mw"], 1.43117, 1e-4)
     near("extra GPUs (floor)", l["extra_gpus"], 1120)
     near("revenue at 60%", l["revenue"], 23_488_013, 10)
 

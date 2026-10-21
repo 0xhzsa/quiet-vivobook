@@ -33,15 +33,20 @@ from __future__ import annotations
 
 import argparse
 import math
-
 import fanlaw
+import thermal_model
+
+# The throughput-safe operating point, DERIVED from the thermal solve rather
+# than hard-coded. A change to the thermal model moves the fleet numbers
+# with it, which is the whole point of computing it.
+DUTY_CTRL = thermal_model.shipped_duty()
+
 
 HOURS = 8760.0
 GPUS_PER_NODE = 8
 NODE_KW = 10.2
 FAN_W = 1000.0
 DUTY_BASE = 0.95
-DUTY_CTRL = 0.529
 TARIFF = 0.08
 PUE = 1.35
 AFR = 0.03
@@ -178,31 +183,31 @@ def selftest() -> int:
 
     print("self-test: per-node algebra")
     near("1 kW node at $0.08 / PUE 1.35",
-         energy_per_node(1000, 0.08, 1.35), 601.57, 0.01)
+         energy_per_node(1000, 0.08, 1.35), 601.78, 0.01)
     near("500 W node at $0.08 / PUE 1.35",
-         energy_per_node(500, 0.08, 1.35), 300.79, 0.01)
+         energy_per_node(500, 0.08, 1.35), 300.89, 0.01)
     near("8-GPU fatigue at R=36", fatigue_per_node(), 612.50, 0.01)
     near("fatigue ceiling", fatigue_per_node(ratio=1e12), 630.00, 0.01)
-    near("total per node", energy_per_node() + fatigue_per_node(), 1214.07, 0.01)
+    near("total per node", energy_per_node() + fatigue_per_node(), 1214.28, 0.01)
 
     print("self-test: 8,000-GPU base scenario")
     r = legs(8_000)
     near("nodes", r["nodes"], 1000)
-    near("energy", r["energy"], 601_572, 1)
+    near("energy", r["energy"], 601_779, 1)
     near("fatigue", r["fatigue"], 612_500, 0.5)
-    near("total", r["saving"], 1_214_072, 1)
-    near("capacity MW", r["capacity_mw"], 0.635858, 1e-5)
+    near("total", r["saving"], 1_214_279, 1)
+    near("capacity MW", r["capacity_mw"], 0.636076, 1e-5)
     near("extra nodes (floor)", r["extra_nodes"], 62)
     near("extra GPUs", r["extra_gpus"], 496)
     near("capacity revenue", r["revenue"], 10_401_834, 1)
 
     print("self-test: boundaries and attribution")
     near("GPUs for $1M, total", breakeven_gpus(), 6_592, 0)
-    near("GPUs for $1M, energy only", breakeven_gpus(energy_only=True), 13_304, 0)
+    near("GPUs for $1M, energy only", breakeven_gpus(energy_only=True), 13_296, 0)
     a = attributable(8_000, 0.5)
-    near("50% owned, direct", a["direct"], 607_036, 0.5)
+    near("50% owned, direct", a["direct"], 607_139, 0.5)
     near("50% owned, capacity", a["capacity"], 5_200_917, 1)
-    near("36k naive total (liquid trap)", legs(36_000)["saving"], 5_463_325, 1)
+    near("36k naive total (liquid trap)", legs(36_000)["saving"], 5_464_255, 1)
 
     print(f"\n{16 - failures}/16 checks passed")
     return 1 if failures else 0

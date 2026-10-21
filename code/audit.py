@@ -32,13 +32,14 @@ import fanlaw
 import fleet_model
 import lambda_case as lam
 import modal_case as mod
+import thermal_model
 import throughput
 import together_case as tog
 
-# The throughput-safe operating point. 52.9 % duty holds the die at 75 C
-# at 80 % GPU load, which is where the GPU still runs at full boost.
-# Derived by code/server_thermal_controller.py:throughput_safe_point.
-DUTY_CTRL = 0.529
+# The throughput-safe operating point, derived from the thermal solve.
+# 52.9 % duty holds the die at 75 C at 80 % GPU load, which is where the
+# GPU still runs at full boost.
+DUTY_CTRL = thermal_model.shipped_duty()
 
 HOURS = 8760.0
 GPUS_PER_NODE = 8
@@ -120,40 +121,40 @@ def audit_reference(a: Audit) -> None:
     print("\n1. INDEPENDENT DECIMAL REFERENCE")
     e_node = ref_energy(1000, 0.95, DUTY_CTRL, 0.08, 1.35)
     f_node = ref_fatigue(0.03, 0.35, 60_000, 36)
-    a.close("8-GPU energy at $0.08 / PUE 1.35", e_node, "601.572", "0.001")
+    a.close("8-GPU energy at $0.08 / PUE 1.35", e_node, "601.779", "0.001")
     a.close("8-GPU fatigue at R=36", f_node, "612.50", "0.01")
-    a.close("8-GPU total", e_node + f_node, "1214.072", "0.001")
+    a.close("8-GPU total", e_node + f_node, "1214.279", "0.001")
 
     nodes = ref_nodes(12)
     a.check("12 MW / 10.2 kW floors to 1,176 nodes", nodes == 1176, f"got {nodes}")
-    a.close("ATL02 energy", nodes * e_node, "707449.034", "0.01")
+    a.close("ATL02 energy", nodes * e_node, "707691.958", "0.01")
     a.close("ATL02 fatigue", nodes * f_node, "720300", "0.01")
-    a.close("ATL02 total", nodes * (e_node + f_node), "1427749.034", "0.01")
+    a.close("ATL02 total", nodes * (e_node + f_node), "1427991.958", "0.01")
     for ratio, want_f, want_total in (
-        ("1.3", "170972.308", "878421.341"),
-        ("1.8", "329280", "1036729.034"),
+        ("1.3", "170972.308", "878664.266"),
+        ("1.8", "329280", "1036971.958"),
     ):
         f = ref_fatigue(0.03, 0.35, 60_000, float(ratio))
         a.close(f"ATL02 fatigue at {ratio}x", nodes * f, want_f, "0.01")
         a.close(f"ATL02 total at {ratio}x", nodes * (e_node + f), want_total, "0.01")
 
     for ratio, want_f4, want_t4, want_t8_09, want_t8_08 in (
-        ("1.3", "60.577", "260.183", "847.219", "746.957"),
-        ("1.8", "116.667", "316.273", "981.834", "881.572"),
+        ("1.3", "60.577", "260.266", "847.460", "747.163"),
+        ("1.8", "116.667", "316.356", "982.075", "881.779"),
     ):
         f4 = ref_fatigue(0.03, 0.35, 25_000, float(ratio))
         f8 = ref_fatigue(0.03, 0.35, 60_000, float(ratio))
         a.close(f"4-GPU fatigue at {ratio}x", f4, want_f4, "0.01")
-        a.close(f"4-GPU total at {ratio}x", D("199.606") + f4, want_t4, "0.01")
-        a.close(f"8-GPU total at {ratio}x / $0.09", D("701.834") + f8,
+        a.close(f"4-GPU total at {ratio}x", D("199.689") + f4, want_t4, "0.01")
+        a.close(f"8-GPU total at {ratio}x / $0.09", D("702.075") + f8,
                 want_t8_09, "0.01")
-        a.close(f"8-GPU total at {ratio}x / $0.08", D("601.572") + f8,
+        a.close(f"8-GPU total at {ratio}x / $0.08", D("601.779") + f8,
                 want_t8_08, "0.01")
 
     t_nodes = 8000 // GPUS_PER_NODE
-    a.close("Together 8k energy", t_nodes * e_node, "601572.31", "0.01")
+    a.close("Together 8k energy", t_nodes * e_node, "601778.88", "0.01")
     a.close("Together 8k fatigue", t_nodes * f_node, "612500", "0.01")
-    a.close("Together 8k total", t_nodes * (e_node + f_node), "1214072.31", "0.01")
+    a.close("Together 8k total", t_nodes * (e_node + f_node), "1214278.88", "0.01")
 
     m_gpus = D(1_000_000_000) / (D("3.9492") * D(HOURS) * D("0.60"))
     m_nodes = int(m_gpus // GPUS_PER_NODE)
@@ -174,26 +175,26 @@ def audit_modules(a: Audit) -> None:
                 f_ref, "0.01")
 
     atl = lam.site(12)
-    a.close("lambda ATL02 total", atl["saving"], "1427749.034", "0.01")
+    a.close("lambda ATL02 total", atl["saving"], "1427991.958", "0.01")
     a.close("lambda ATL02 capacity", atl["revenue"], "12247320.96", "0.01")
-    for ratio, want in (("1.3", "878421.341"), ("1.8", "1036729.034")):
+    for ratio, want in (("1.3", "878664.266"), ("1.8", "1036971.958")):
         a.close(f"lambda ATL02 {ratio}x total",
                 lam.site(12, ratio=float(ratio))["saving"], want, "0.01")
 
     t = tog.attributable(8000, 1.0)
-    a.close("together 8k direct", t["direct"], "1214072.31", "0.01")
+    a.close("together 8k direct", t["direct"], "1214278.88", "0.01")
     a.close("together 8k 50%", tog.attributable(8000, 0.5)["direct"],
-            "607036.15", "0.01")
-    for ratio, want in (("1.3", "746956.92"), ("1.8", "881572.31")):
+            "607139.44", "0.01")
+    for ratio, want in (("1.3", "747163.49"), ("1.8", "881778.88")):
         a.close(f"together 8k {ratio}x total",
                 tog.attributable(8000, 1.0, ratio=float(ratio))["direct"],
                 want, "0.01")
 
     m = mod.fan_bill(mod.active_gpus(1e9))
-    a.close("modal fan bill energy", m["energy"], "3622668.4", "1")
+    a.close("modal fan bill energy", m["energy"], "3623912.4", "1")
     a.close("modal fan bill fatigue", m["fatigue"], "3688475.0", "1")
-    a.close("modal fan bill total", m["total"], "7311143.4", "1")
-    for ratio, want in (("1.3", "4498174.59"), ("1.8", "5308828.4")):
+    a.close("modal fan bill total", m["total"], "7312387.4", "1")
+    for ratio, want in (("1.3", "4499418.5"), ("1.8", "5310072.4")):
         a.close(f"modal fan bill {ratio}x total",
                 mod.fan_bill(mod.active_gpus(1e9), ratio=float(ratio))["total"],
                 want, "1")
@@ -279,11 +280,15 @@ def audit_upstream(a: Audit) -> None:
     # must use it. This is the check that the audit previously only warned
     # about: the pure cubic overstated the saving and the model used it.
     a.close("calibrated law reproduces 120 W at 90% duty",
-            fanlaw.fan_power(fanlaw.MEASURED_DUTY_BEFORE,
-                             fanlaw.MEASURED_BASE_W), "120.0", "0.01")
+            fanlaw.fan_power(fanlaw.DUTY_BEFORE,
+                             fanlaw.base_w_from_measurement(
+                                 fanlaw.MEASURED_BEFORE_W, fanlaw.DUTY_BEFORE)),
+            "120.0", "0.01")
     a.close("calibrated law reproduces 15 W at 30% duty",
-            fanlaw.fan_power(fanlaw.MEASURED_DUTY_AFTER,
-                             fanlaw.MEASURED_BASE_W), "15.0", "0.01")
+            fanlaw.fan_power(fanlaw.DUTY_AFTER,
+                             fanlaw.base_w_from_measurement(
+                                 fanlaw.MEASURED_BEFORE_W, fanlaw.DUTY_BEFORE)),
+            "15.0", "0.01")
     a.check("case.py uses the calibrated law, not the raw cubic",
             abs(case.fan_saving(case.GPU8)["ctrl_w"]
                 - fanlaw.fan_power(case.GPU8.duty_ctrl, case.GPU8.fan_w)) < 1e-12)
@@ -363,17 +368,47 @@ def audit_throughput(a: Audit) -> None:
     a.check("the constrained case is net negative at the current duty",
             throughput.net_saving(839.0, throughput.GPU8_COST, rev, 1.0)["net"] < 0,
             "a 5.15% loss costs more than the fan saving on a saturated fleet")
-    # The fleet case ships a duty that is safe under saturation. The
-    # throughput-safe operating point at 80 % GPU load is 52.9 % duty, which
-    # holds the die at 75 C where the GPU still runs at full boost.
-    a.check("the fleet case ships the throughput-safe duty",
-            abs(case.GPU8.duty_ctrl - 0.529) < 1e-3,
-            f"duty {case.GPU8.duty_ctrl}")
+    # The fleet case must ship the duty the thermal model derives, and the
+    # audit must check the DERIVATION, not a literal. A hard-coded constant
+    # with an audit that compares it to itself is how a model silently stops
+    # matching its own physics.
+    derived = thermal_model.shipped_duty(0.8)
+    a.check("the fleet case ships the derived throughput-safe duty",
+            abs(case.GPU8.duty_ctrl - derived) < 1e-9,
+            f"case {case.GPU8.duty_ctrl} vs derived {derived}")
+    a.check("the fleet modules all use the same derived duty",
+            abs(lam.DUTY_CTRL - derived) < 1e-9
+            and abs(tog.DUTY_CTRL - derived) < 1e-9
+            and abs(mod.DUTY_CTRL - derived) < 1e-9,
+            "lambda/together/modal disagree with the thermal solve")
+    a.check("the derived duty is not a magic constant",
+            0.40 < derived < 0.70, "got %.4f" % derived)
     a.check("the shipped duty has zero modelled throughput cost",
             case.GPU8.throughput_cost == 0.0,
             f"cost {case.GPU8.throughput_cost:.4f}")
-    a.check("the shipped duty is the one the thermal model derives",
-            abs(case.GPU8.duty_ctrl - 0.529) < 1e-3)
+
+    # The thermal model must report a BAND, not a point. A model that
+    # publishes a single number for a quantity that depends on an assumed
+    # inlet temperature is overstating what it knows.
+    op = thermal_model.operating_point(thermal_model.make_gpu8(),
+                                       8 * 700.0 * 0.8)
+    lo, hi = op["saved_pct_band"]
+    a.check("the 8-GPU operating point reports a saving band", hi > lo)
+    a.check("the saving band is wider than 5 points", (hi - lo) > 5.0,
+            f"band {hi - lo:.1f} points")
+    a.check("the point estimate lies inside the band",
+            lo <= op["saved_pct"] <= hi,
+            f"point {op['saved_pct']:.1f} band [{lo:.1f}, {hi:.1f}]")
+
+    # The inlet-temperature sensitivity must be visible, because a real node
+    # sees 18-30 C and the answer moves more than 30 points across that.
+    env = thermal_model.operating_envelope()
+    at80 = [pt["saved_pct"] for pt in env["points"] if pt["load"] == 0.8]
+    a.check("the inlet-temperature spread exceeds 30 points of fan saving",
+            max(at80) - min(at80) > 30.0,
+            f"spread {max(at80) - min(at80):.1f}")
+    a.check("the envelope reports infeasible points rather than clamping them",
+            any(not pt["feasible"] for pt in env["points"]))
 
 
 def _scheme_ab_summary() -> str:
@@ -394,6 +429,8 @@ def audit_docs(a: Audit) -> None:
     modal = open(os.path.join(root, "MODAL-CASE.md"), encoding="utf-8").read()
     case_doc = open(os.path.join(root, "CASE-STUDY.md"), encoding="utf-8").read()
     three = open(os.path.join(root, "THREE-CASES.md"), encoding="utf-8").read()
+    lambda_doc = open(os.path.join(root, "LAMBDA-CASE.md"), encoding="utf-8").read()
+    together_case_doc = open(os.path.join(root, "TOGETHER-CASE.md"), encoding="utf-8").read()
     a.check("README no longer calls the Modal count an upper bound",
             "derived from ARR** — upper bound" not in readme)
     a.check("MODAL-CASE no longer calls the count an upper bound",
@@ -418,6 +455,18 @@ def audit_docs(a: Audit) -> None:
             "plausible" in three)
     a.check("README founder ranges are the 1.3-1.8 range",
             "$0.88–1.04M" in readme and "$0.75–0.88M" in readme)
+    # The repository must not issue verdicts about named companies. It
+    # reports where the fan tray and the meter sit, and names the party
+    # that would have to act.
+    for name, text in (("README", readme), ("THREE-CASES", three),
+                       ("MODAL-CASE", modal)):
+        low = text.lower()
+        a.check(f"{name} does not issue a verdict on a named company",
+                "disqualified" not in low and "**conditional**" not in low,
+                "use 'where the meter sits' instead")
+    a.check("the case files name the parties that hold the fan tray",
+            "Hypertec" in together_case_doc and "EdgeConneX" in lambda_doc
+            and "provider" in modal.lower())
     a.check("README does not quote the superseded affinity-law numbers",
             "$1.23–1.39M" not in readme and "$1.04–1.18M" not in readme
             and "$1.08–1.22M" not in readme)

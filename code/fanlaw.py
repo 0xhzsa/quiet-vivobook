@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-fanlaw.py - the fan power law, calibrated against a real measurement.
+fanlaw.py - the fan power law, and the uncertainty it carries.
 
 The naive model is the affinity law: for a fixed impeller, airflow ~ N,
 pressure ~ N^2, and shaft power ~ N^3. That predicts a 95% -> 35% duty cut
@@ -8,53 +8,39 @@ removes 95% of fan power.
 
 It is wrong, and the direction of the error matters, because the whole claim
 is a dollar figure. @0xAlcibiades measured 120 W -> 15 W on a real 64-core
-Ampere server (github.com/0xAlcibiades/quiet-lab, MIT): a 87.5% cut, not 95%.
-The pure cubic overstates the saving by 9 W on that node.
+Ampere server (github.com/0xAlcibiades/quiet-lab, MIT): an 87.5% cut, not 95%.
+The pure cubic overstates the saving.
 
 Why the cubic fails
 -------------------
-A real fan is not an ideal impeller on a free-air load. Three effects break
-the pure N^3 scaling:
+A real fan is not an ideal impeller on a free-air load:
 
   1. Motor losses. Brushless DC fan motors have a floor on electrical input
-     that does not vanish with speed. Power falls as roughly a + b*d^3, not
-     d^3 alone.
-  2. Bearing and windage losses grow with speed but with a different
-     exponent than the aerodynamic term.
+     that does not vanish with speed.
+  2. Bearing and windage losses grow with speed at a different exponent than
+     the aerodynamic term.
   3. Drive electronics quiescent current is roughly speed-independent.
 
-So the correct model is an affine-cubic: P(d) = base * (a*d^3 + b*d) / (a + b),
-with the constant term folded into the linear term. `base` is the power at
-100% duty. Setting a = 1 and solving for b against the measured pair:
+So the model is affine-cubic: P(d) = base * (a*d^3 + b*d) / (a + b), with the
+speed-independent part folded into the linear term.
 
-    120 = base * (0.90^3 + b*0.90) / (1 + b)
-     15 = base * (0.30^3 + b*0.30) / (1 + b)
+THE HONEST PART: this law has ONE free parameter fitted to ONE measured
+number, at duty points that quiet-lab only states as ranges.
 
-Taking the ratio, 120/15 = 8, so:
-
-    (0.729 + 0.9b) / (0.027 + 0.3b) = 8
-    0.729 + 0.9b = 0.216 + 2.4b
-    0.513 = 1.5b
-    b = 0.342
-
-With a = 1.0 and b = 0.342 the *ratio* is reproduced exactly, and the implied
-power at 100% duty is:
-
-    base = 120 * (1 + 0.342) / (0.729 + 0.342*0.90) = 155.3 W
-
-So a 120 W measurement at 90% duty implies a 155.3 W tray at full speed. With
-those two numbers the model reproduces the measurement exactly and gives 87.5%
-where the pure cubic gives 95%. The cubic is retained in the function below
-only as an explicit comparison term, because "what the naive model would have
-said" is itself a useful number for a reader.
-
-Calibration provenance
-----------------------
   measured_before_w  120.0   @0xAlcibiades, quiet-lab README
   measured_after_w    15.0   @0xAlcibiades, quiet-lab README
-  measured_duty_before  0.90 (README states 80-100%; 90% is the midpoint)
-  measured_duty_after   0.30 (README states 25-35%; 30% is the midpoint)
-  duty values are midpoints of a stated range, not exact readings
+  duty_before      0.80-1.00  README says "80-100%"; we use the RANGE
+  duty_after       0.25-0.35  README says "25-35%"; we use the RANGE
+
+Solving with a = 1 for b, at every combination of the stated duty ranges,
+gives b in [0.085, 0.875] - a 10x spread. The resulting fan saving at a
+given duty is a BAND, not a number. `saving_band()` returns that band.
+
+The midpoint choice (0.90, 0.30) is one point in that range. It is used for
+the headline because it is the most defensible single choice, and every
+headline is reported with the band beside it.
+
+Do not quote a fan saving from this module without the band.
 
     uv run --no-project python code/fanlaw.py --selftest
 """
@@ -62,21 +48,29 @@ Calibration provenance
 from __future__ import annotations
 
 import argparse
-
-# Empirical fit coefficients. a is the aerodynamic (cubic) weight, b is the
-# speed-independent + speed-linear loss weight.
-A_CUBIC = 1.0
-B_LOSS = 0.342
+from dataclasses import dataclass
 
 # The measured anchor this law is calibrated to.
 MEASURED_BEFORE_W = 120.0
 MEASURED_AFTER_W = 15.0
-MEASURED_DUTY_BEFORE = 0.90
-MEASURED_DUTY_AFTER = 0.30
+MEASURED_DUTY_BEFORE_RANGE = (0.80, 1.00)   # README states 80-100%
+MEASURED_DUTY_AFTER_RANGE = (0.25, 0.35)    # README states 25-35%
+
+# The midpoint choice, used for the headline. Also the calibration point.
+DUTY_BEFORE = 0.90
+DUTY_AFTER = 0.30
+
+# Empirical fit coefficients at the midpoint choice. a is the aerodynamic
+# (cubic) weight, b is the speed-independent + speed-linear loss weight.
+A_CUBIC = 1.0
+B_LOSS = 0.342
+
+# The affinity-law prediction at the same duty pair, for comparison.
+CUBIC_PREDICTED_AFTER_W = MEASURED_BEFORE_W * (DUTY_AFTER / DUTY_BEFORE) ** 3
 
 
-def _loss_coefficient(w_before: float, w_after: float,
-                      d_before: float, d_after: float) -> float:
+def loss_coefficient(w_before: float, w_after: float,
+                     d_before: float, d_after: float) -> float:
     """Solve for the loss coefficient b that reproduces a measured power pair.
 
     From P(d) = base * (a*d^3 + b*d) / (a+b), the measured ratio gives
@@ -106,14 +100,8 @@ def base_w_from_measurement(w: float, duty: float, a: float = A_CUBIC,
     return w / shape
 
 
-# The power at 100% duty implied by the measured 120 W @ 90%.
-MEASURED_BASE_W = base_w_from_measurement(MEASURED_BEFORE_W, MEASURED_DUTY_BEFORE)
-
-# The affinity-law prediction at the same duty pair, for comparison.
-CUBIC_PREDICTED_AFTER_W = MEASURED_BEFORE_W * (MEASURED_DUTY_AFTER / MEASURED_DUTY_BEFORE) ** 3
-
-
-def fan_power(duty: float, base_w: float, a: float = A_CUBIC, b: float = B_LOSS) -> float:
+def fan_power(duty: float, base_w: float, a: float = A_CUBIC,
+              b: float = B_LOSS) -> float:
     """Fan electrical power at a given duty cycle.
 
     base_w is the power at 100% duty. The returned value uses the calibrated
@@ -158,12 +146,56 @@ def saving_fraction_cubic(duty_base: float, duty_ctrl: float) -> float:
     return 1.0 - (duty_ctrl / duty_base) ** 3
 
 
-def report(duty_base: float = 0.95, duty_ctrl: float = 0.35, base_w: float = 1000.0) -> dict:
+@dataclass(frozen=True)
+class Band:
+    """A range, with the point estimate inside it."""
+    low: float
+    high: float
+    point: float
+
+    def __str__(self) -> str:
+        return f"{100 * self.low:.1f}-{100 * self.high:.1f}% (point {100 * self.point:.1f}%)"
+
+
+def b_range(d1_range=MEASURED_DUTY_BEFORE_RANGE,
+            d2_range=MEASURED_DUTY_AFTER_RANGE) -> tuple:
+    """The range of loss coefficients implied by quiet-lab's stated duty ranges."""
+    vals = []
+    for d1 in d1_range:
+        for d2 in d2_range:
+            vals.append(loss_coefficient(MEASURED_BEFORE_W, MEASURED_AFTER_W, d1, d2))
+    return (min(vals), max(vals))
+
+
+def saving_band(duty_base: float, duty_ctrl: float,
+                d1_range=MEASURED_DUTY_BEFORE_RANGE,
+                d2_range=MEASURED_DUTY_AFTER_RANGE) -> Band:
+    """The fan saving as a BAND over the duty ranges quiet-lab states.
+
+    This is the honest output of the law. The point estimate uses the duty
+    midpoints, which is a choice, not a measurement.
+    """
+    lo_b, hi_b = b_range(d1_range, d2_range)
+    b_point = loss_coefficient(MEASURED_BEFORE_W, MEASURED_AFTER_W, DUTY_BEFORE, DUTY_AFTER)
+    vals = []
+    for b in (lo_b, hi_b):
+        before = fan_power(duty_base, 1.0, B_LOSS, b)
+        after = fan_power(duty_ctrl, 1.0, B_LOSS, b)
+        vals.append((before - after) / before if before else 0.0)
+    lo, hi = min(vals), max(vals)
+    point = saving_fraction(duty_base, duty_ctrl)
+    return Band(low=lo, high=hi, point=point)
+
+
+def report(duty_base: float = 0.95, duty_ctrl: float = 0.35,
+           base_w: float = 1000.0) -> dict:
     """Everything a reader needs to see the model and its error in one dict."""
     before = fan_power(duty_base, base_w)
     after = fan_power(duty_ctrl, base_w)
     before_c = fan_power_cubic(duty_base, base_w)
     after_c = fan_power_cubic(duty_ctrl, base_w)
+    band = saving_band(duty_base, duty_ctrl)
+    lo_b, hi_b = b_range()
     return {
         "duty_base": duty_base,
         "duty_ctrl": duty_ctrl,
@@ -177,6 +209,8 @@ def report(duty_base: float = 0.95, duty_ctrl: float = 0.35, base_w: float = 100
         "cubic_saving_w": before_c - after_c,
         "cubic_saving_pct": 100.0 * (before_c - after_c) / before_c if before_c else 0.0,
         "overstatement_w": (before_c - after_c) - (before - after),
+        "saving_band_pct": (100.0 * band.low, 100.0 * band.high),
+        "b_range": (lo_b, hi_b),
     }
 
 
@@ -192,45 +226,58 @@ def selftest() -> int:
         print("  pass  %s" % name)
 
     # 1. The calibration must reproduce the measurement exactly.
-    before = fan_power(MEASURED_DUTY_BEFORE, MEASURED_BASE_W)
-    after = fan_power(MEASURED_DUTY_AFTER, MEASURED_BASE_W)
+    before = fan_power(DUTY_BEFORE, base_w_from_measurement(MEASURED_BEFORE_W, DUTY_BEFORE))
+    after = fan_power(DUTY_AFTER, base_w_from_measurement(MEASURED_BEFORE_W, DUTY_BEFORE))
     check("calibrated law reproduces 120 W at 90% duty",
           abs(before - MEASURED_BEFORE_W) < 1e-6, "got %.4f" % before)
     check("calibrated law reproduces 15 W at 30% duty",
           abs(after - MEASURED_AFTER_W) < 1e-6, "got %.4f" % after)
-    check("implied 100% duty power is 155.3 W",
-          abs(MEASURED_BASE_W - 155.3) < 0.1, "got %.3f" % MEASURED_BASE_W)
 
-    # 2. The measured cut is 87.5%, and the cubic overstates it.
+    # 2. The pure cubic overstates, and by how much.
     measured_frac = (MEASURED_BEFORE_W - MEASURED_AFTER_W) / MEASURED_BEFORE_W
-    check("calibrated law gives the measured 87.5% cut",
-          abs((MEASURED_BEFORE_W - MEASURED_AFTER_W) / MEASURED_BEFORE_W
-              - measured_frac) < 1e-9)
-    check("loss coefficient solved from the measured pair is 0.342",
-          abs(_loss_coefficient(MEASURED_BEFORE_W, MEASURED_AFTER_W,
-                                MEASURED_DUTY_BEFORE, MEASURED_DUTY_AFTER)
-              - B_LOSS) < 1e-9)
     check("pure cubic overstates the saving",
-          saving_fraction_cubic(MEASURED_DUTY_BEFORE, MEASURED_DUTY_AFTER)
-          > measured_frac + 0.05)
+          saving_fraction_cubic(DUTY_BEFORE, DUTY_AFTER) > measured_frac + 0.05)
     check("cubic prediction at 30% is 4.44 W, not 15 W",
           abs(CUBIC_PREDICTED_AFTER_W - 4.44) < 0.01,
           "got %.4f" % CUBIC_PREDICTED_AFTER_W)
 
-    # 3. Monotonicity and bounds.
+    # 3. THE UNCERTAINTY. This is the check that was missing.
+    lo_b, hi_b = b_range()
+    check("b spans more than a 5x range over the stated duty ranges",
+          hi_b / lo_b > 5.0, "got %.2fx (%.3f to %.3f)" % (hi_b / lo_b, lo_b, hi_b))
+    band = saving_band(0.95, 0.353)
+    check("the saving band is wider than 5 points",
+          (band.high - band.low) > 0.05,
+          "band %.4f wide" % (band.high - band.low))
+    check("the point estimate lies inside the band",
+          band.low <= band.point <= band.high,
+          "point %.4f band [%.4f, %.4f]" % (band.point, band.low, band.high))
+    # The naive cubic is the OPTIMISTIC end of every physically admissible
+    # calibration, and it falls OUTSIDE the band. That is the point of the
+    # band: it is not a way to rescue the cubic, it is a way to exclude it.
+    check("the naive cubic lies ABOVE the whole band",
+          saving_fraction_cubic(0.95, 0.353) > band.high,
+          "cubic %.4f band high %.4f" % (saving_fraction_cubic(0.95, 0.353), band.high))
+    check("the band excludes the cubic claim",
+          band.high < saving_fraction_cubic(0.95, 0.353))
+    check("the midpoint point estimate is not the optimistic end",
+          abs(band.point - band.high) > 0.01,
+          "point %.4f high %.4f" % (band.point, band.high))
+
+    # 4. Monotonicity and bounds.
     check("power is monotonic in duty",
           all(fan_power(d / 100.0, 1000.0) < fan_power((d + 1) / 100.0, 1000.0)
               for d in range(100)))
     check("power at 100% duty equals base", abs(fan_power(1.0, 1000.0) - 1000.0) < 1e-9)
     check("power at 0% duty is zero", fan_power(0.0, 1000.0) == 0.0)
 
-    # 4. The law is gentler than cubic at every interior point: the loss term
+    # 5. The law is gentler than cubic at every interior point: the loss term
     #    keeps a floor under the power, which is the physical claim.
     check("calibrated law sits above the cubic for all interior duty",
           all(fan_power(d / 100.0, 1000.0) >= fan_power_cubic(d / 100.0, 1000.0)
               for d in range(1, 100)))
 
-    # 5. The affine-cubic saving fraction is strictly between the cubic
+    # 6. The affine-cubic saving fraction is strictly between the cubic
     #    prediction and zero for any real duty reduction.
     f_cal = saving_fraction(0.95, 0.35)
     f_cub = saving_fraction_cubic(0.95, 0.35)
@@ -239,7 +286,7 @@ def selftest() -> int:
     check("95->35 calibrated saving is 86.25%",
           abs(f_cal - 0.8625) < 1e-4, "got %.6f" % f_cal)
 
-    # 6. Invalid inputs raise.
+    # 7. Invalid inputs raise.
     for bad in (lambda: fan_power(0.5, -1.0), lambda: fan_power(0.5, 100.0, a=0.0)):
         try:
             bad()
@@ -269,7 +316,13 @@ def main() -> None:
     print("FAN POWER LAW - calibrated against a measured 120 W -> 15 W result")
     print("=" * 78)
     print("law          P(d) = base * (a*d^3 + b*d) / (a+b),  a=%.3f b=%.3f" % (A_CUBIC, B_LOSS))
-    print("calibration  @0xAlcibiades quiet-lab: 120 W @ ~90% -> 15 W @ ~30%")
+    print("calibration  @0xAlcibiades quiet-lab: 120 W -> 15 W")
+    print("duty points  quiet-lab states 80-100%% and 25-35%%; midpoints %.0f%% and %.0f%% used"
+          % (100 * DUTY_BEFORE, 100 * DUTY_AFTER))
+    print()
+    lo_b, hi_b = b_range()
+    print("UNCERTAINTY: b ranges %.3f to %.3f over the stated duty ranges (%.1fx)"
+          % (lo_b, hi_b, hi_b / lo_b))
     print()
 
     r = report(args.duty_base, args.duty_ctrl, args.base_w)
@@ -283,9 +336,16 @@ def main() -> None:
           (r["cubic_before_w"], r["cubic_after_w"],
            r["cubic_saving_w"], r["cubic_saving_pct"]))
     print()
-    print("  the pure affinity law overstates the saving by %.1f W on this tray." %
+    band = saving_band(args.duty_base, args.duty_ctrl)
+    print("  BAND over quiet-lab's stated duty ranges: %.1f%% - %.1f%%" %
+          (100 * band.low, 100 * band.high))
+    print("  point estimate at the midpoints:          %.1f%%" % (100 * band.point))
+    print()
+    print("  The pure affinity law overstates the saving by %.1f W on this tray." %
           r["overstatement_w"])
-    print("  That is the difference between a 95%% claim and an 86%% claim.")
+    print()
+    print("  Quote the band, not the point. The point is one choice of duty")
+    print("  midpoint inside a range quiet-lab only states as a range.")
 
 
 if __name__ == "__main__":

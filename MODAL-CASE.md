@@ -4,13 +4,13 @@
 > bill behind that fleet is **$6.3–7.1M/yr** at 1.3–1.8× — real, and
 > **0.63–0.71 % of revenue** (**$9.1M / 0.91 %** at R=36). Modal owns none of it. The
 > company is a platform on top of 13
-> capacity providers, not a fleet owner. This case is a disqualification, and
+> capacity providers, not a fleet owner. The physics applies; the bill does not
 > the cleanest demonstration of why ownership is the first term.
 
 This is the fourth case in the project, and the third founder-led one. The
 first proved the claim on a 24,000-H100 fleet with no founder attached. The
 second pointed it at Lambda (qualified). The third pointed it at Together
-(conditional). This one points it at **Modal**, founder/CEO
+(a partner). This one points it at **Modal** and at the providers behind it, founder/CEO
 **@bernhardsson**, company **@modal_labs**.
 
 The result is not a smaller win. It is a **different answer**: the fan claim does
@@ -38,7 +38,7 @@ of the error is not known, so treat it as a scenario.
 | nodes | **6,022** |
 | fan energy | **$5,412,388/yr** |
 | thermal fatigue | **$3,688,475/yr at R=36; $0.88–$1.69M at 1.3–1.8×** |
-| **fan bill** | **$7,311,143/yr at R=36; $4.50–$5.31M at 1.3–1.8×** |
+| **fan bill, at the providers** | **$7,311,143/yr at R=36; $4.50–$5.31M at 1.3–1.8×** |
 | as % of ARR | **0.63–0.71 % at 1.3–1.8×; 0.91 % at R=36** |
 | capacity value of freed watts | $92,991,338/yr gross |
 | **Modal's direct saving** | **$0** |
@@ -102,7 +102,7 @@ The decisive public statements:
 > providers. Currently, it has 13 cloud partners."
 > — DataCenterDynamics, 2026-10-16
 
-That is the disqualification in two sentences. A fan controller needs a fan, a
+That is the ownership question in two sentences. A fan controller needs a fan, a
 BMC, and a power bill. Modal has none of the three on its own balance sheet.
 
 **Correction worth making explicit:** some press coverage quotes a neocloud CEO
@@ -122,7 +122,7 @@ scenario; at 1.3–1.8× it is 0.63–0.71 % of ARR:
 |---:|---:|---:|---:|---:|
 | $0.25B | 12,044 | 1,505 | $2,274,460 | 0.91 % |
 | $0.50B | 24,088 | 3,011 | $4,550,431 | 0.91 % |
-| **$1.00B** | **48,177** | **6,022** | **$7,311,143** | **0.73 %** |
+| **$1.00B** | **48,177** | **6,022** | **$7,312,387** | **0.73 %** |
 | $2.00B | 96,353 | 12,044 | $18,201,725 | 0.91 % |
 
 Under R=36 the percentage is constant because both sides scale with ARR. That
@@ -151,13 +151,13 @@ duty, $0.08/kWh, PUE 1.35 — the derived fleet's fan bill is:
 |---|---:|
 | energy | **$5,412,388/yr** |
 | fatigue | **$3,688,475/yr** |
-| **total** | **$7,311,143/yr** |
+| **total** | **$7,312,387/yr** |
 | capacity (gross) | **$92,991,338/yr** |
 
 Across 13 providers, the average share is:
 
 ```
-$7,311,143 / 13 = $562,396/yr per provider
+$7,312,387 / 13 = $562,491/yr per provider
 ```
 
 That is the size of the prize for each capacity provider — not for Modal. The
@@ -165,9 +165,9 @@ pass-through function makes the split explicit:
 
 | provider share of the saving | providers keep | Modal keeps |
 |---:|---:|---:|
-| 100 % (current model) | **$7,311,143** | **$0** |
+| 100 % (current model) | **$7,312,387** | **$0** |
 | 50 % | $4,550,431 | $4,550,431 |
-| 0 % | $0 | **$7,311,143** |
+| 0 % | $0 | **$7,312,387** |
 
 Under the current model, the providers own the nodes, pay the power, and keep
 the saving. Modal keeps nothing. The only way Modal captures it is a
@@ -216,8 +216,8 @@ def qualification(owns_datacenter, owns_nodes, controls_bmc, pays_power):
     if controls_bmc and pays_power:
         return "qualified"
     if controls_bmc and not pays_power:
-        return "conditional"
-    return "disqualified"
+        return "partner"
+    return "provider"
 ```
 
 The three cases:
@@ -225,12 +225,12 @@ The three cases:
 | target | owns DC | owns nodes | controls BMC | pays power | verdict |
 |---|---|---|---|---|---|
 | Lambda | no (leases) | yes | yes* | yes* | **qualified** |
-| Together | no | partial | yes* | partial | **conditional** |
-| Modal | no | no | no | no | **disqualified** |
+| Together | no | partial | yes* | partial | **operator or partner** |
+| Modal | no | no | no | no | **the node providers** |
 
 \* Lambda's BMC and power-payment cells are assumptions, not public disclosures.
 
-At 1 kW and R=36, to capture $1M directly Modal would need to own **6,592 GPUs**
+At 1 kW and R=36, to capture $1M directly a provider would need to own **6,592 GPUs**
 (662 eight-GPU nodes); at 1.3–1.8× the count is **6,792–7,664**. It owns zero.
 The **verdict** does not depend on those parameters. The exact GPU count does.
 
