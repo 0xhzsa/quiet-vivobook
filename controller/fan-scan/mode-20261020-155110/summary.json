@@ -1,0 +1,59 @@
+{
+    "baseline_mode":  0,
+    "loads":  [
+                  {
+                      "mode":  0,
+                      "peak_t":  94,
+                      "steady_t":  83.23,
+                      "steady_w":  26.92,
+                      "steady_load":  46,
+                      "samples":  60
+                  },
+                  {
+                      "mode":  1,
+                      "peak_t":  86,
+                      "steady_t":  69.8,
+                      "steady_w":  14.87,
+                      "steady_load":  9.3,
+                      "samples":  60
+                  },
+                  {
+                      "mode":  2,
+                      "peak_t":  90,
+                      "steady_t":  64.53,
+                      "steady_w":  15.06,
+                      "steady_load":  7.1,
+                      "samples":  60
+                  }
+              ],
+    "modes":  {
+                  "2":  {
+                            "mode":  2,
+                            "peak_t":  90,
+                            "steady_t":  64.53,
+                            "steady_w":  15.06,
+                            "steady_load":  7.1,
+                            "samples":  60
+                        },
+                  "1":  {
+                            "mode":  1,
+                            "peak_t":  86,
+                            "steady_t":  69.8,
+                            "steady_w":  14.87,
+                            "steady_load":  9.3,
+                            "samples":  60
+                        },
+                  "0":  {
+                            "mode":  0,
+                            "peak_t":  94,
+                            "steady_t":  83.23,
+                            "steady_w":  26.92,
+                            "steady_load":  46,
+                            "samples":  60
+                        }
+              },
+    "restored_raw":  50528256,
+    "restored_ok":  true,
+    "aborted":  null,
+    "finished":  "2026-10-20T15:58:20.4834504+00:00"
+}

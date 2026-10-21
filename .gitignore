@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+
+# Machine-local controller state: generated at runtime, never publish.
+controller/tools/
+controller/telemetry.csv
+controller/governor-log.csv
+controller/model.json
+controller/state.json
+controller/thermal-state.json
+controller/paused.flag
+
+# Harness output folders. The three committed proof runs are re-included below;
+# git needs the directory itself un-ignored before it will look inside.
+controller/fan-scan/run-*/
+controller/fan-scan/devs-*/
+controller/fan-scan/mode-*/
+controller/fan-scan/setmode-*/
+!controller/fan-scan/devs-20261020-155011/
+!controller/fan-scan/mode-20261020-160330/
+!controller/fan-scan/mode-20261020-155110/

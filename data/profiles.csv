@@ -1,0 +1,5 @@
+profile,peak_c,tail_c,avg_w,peak_w,avg_clock,work_per_s,ac_at_start,ac_at_end
+stock,91,82.2,25.3,37.6,1827,2187.2,True,True
+efficient,86,72.5,17.9,46,1652,1784.5,True,True
+noturbo,71,67.7,10.7,24.6,1217,867.8,True,True
+noturbo80,66,64.5,8.7,11.9,1086,695,True,True

@@ -1,0 +1,28 @@
+{
+    "device_id":  "0x00110019",
+    "baseline_raw":  50528256,
+    "baseline_mode":  0,
+    "noop":  {
+                 "result":  1,
+                 "raw":  50528256,
+                 "mode":  0
+             },
+    "silent":  {
+                   "result":  1,
+                   "raw":  50528257,
+                   "mode":  1
+               },
+    "overboost":  {
+                      "result":  1,
+                      "raw":  50528258,
+                      "mode":  2
+                  },
+    "restored_raw":  50528256,
+    "restored_ok":  true,
+    "aborted":  null,
+    "steps":  [
+                  "noop result=1 mode=0",
+                  "silent result=1 mode=1",
+                  "overboost result=1 mode=2"
+              ]
+}

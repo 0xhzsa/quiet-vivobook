@@ -1,0 +1,34 @@
+{
+  "schemeName": "Quiet (quiet-vivobook)",
+  "thermalPolicyMode": 0,
+  "profiles": [
+    { "id": "efficient", "boost": 3, "state": 100, "epp": 60, "work": 0.82, "watts": 17.9, "eq": 72.5 },
+    { "id": "noturbo",   "boost": 0, "state": 100, "epp": 75, "work": 0.40, "watts": 10.7, "eq": 67.7 },
+    { "id": "floor",     "boost": 0, "state": 80,  "epp": 100, "work": 0.32, "watts": 8.7,  "eq": 64.5 }
+  ],
+  "startProfile": "efficient",
+  "pollSeconds": 5,
+  "targetHigh": 80,
+  "targetLow": 68,
+  "emergencyTemp": 90,
+  "criticalTemp": 97,
+  "predictiveWindow": 15,
+  "dwellSeconds": 25,
+  "idleRelaxSeconds": 90,
+  "emaAlpha": 0.4,
+  "tauSeconds": 60,
+  "steadyTrendCPerS": 0.08,
+  "controller": {
+    "horizon": 18,
+    "minSamples": 2,
+    "wOver": 1.0,
+    "wPerf": 2.0,
+    "wSwitch": 6.0,
+    "warnTemp": 85,
+    "critTemp": 95
+  },
+  "logFile": "governor-log.csv",
+  "telemetryFile": "telemetry.csv",
+  "modelFile": "model.json",
+  "libPath": "tools\\lhm\\LibreHardwareMonitorLib.dll"
+}

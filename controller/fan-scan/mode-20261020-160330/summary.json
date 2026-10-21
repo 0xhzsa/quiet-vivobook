@@ -1,0 +1,69 @@
+{
+    "baseline_mode":  0,
+    "ambient_c":  52.1,
+    "logical_processors":  20,
+    "thread_count":  6,
+    "warmup":  [
+                   {
+                       "label":  "warm1",
+                       "mode":  0,
+                       "seconds":  41.4,
+                       "peak_t":  85,
+                       "steady_t":  77.5,
+                       "steady_w":  29.39,
+                       "steady_iter":  1822612,
+                       "samples":  17,
+                       "invalid":  null
+                   }
+               ],
+    "phases":  [
+                   {
+                       "label":  "p0-m0",
+                       "mode":  0,
+                       "seconds":  103,
+                       "peak_t":  90,
+                       "steady_t":  89.5,
+                       "steady_w":  37.22,
+                       "steady_iter":  2115601.2,
+                       "samples":  30,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "p1-m1",
+                       "mode":  1,
+                       "seconds":  101.8,
+                       "peak_t":  90,
+                       "steady_t":  84.47,
+                       "steady_w":  26.33,
+                       "steady_iter":  1537340.1,
+                       "samples":  36,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "p2-m2",
+                       "mode":  2,
+                       "seconds":  102.2,
+                       "peak_t":  88,
+                       "steady_t":  67.78,
+                       "steady_w":  12.5,
+                       "steady_iter":  957835.9,
+                       "samples":  24,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "p3-m0",
+                       "mode":  0,
+                       "seconds":  101.9,
+                       "peak_t":  91,
+                       "steady_t":  72.7,
+                       "steady_w":  16.64,
+                       "steady_iter":  998373.6,
+                       "samples":  23,
+                       "invalid":  null
+                   }
+               ],
+    "restored_ok":  true,
+    "aborted":  null,
+    "restored_raw":  50528256,
+    "finished":  "2026-10-20T16:11:52.9568986+00:00"
+}
