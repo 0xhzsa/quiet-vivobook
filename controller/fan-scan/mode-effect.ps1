@@ -173,7 +173,20 @@ function Set-Devs([uint32]$id, [uint32]$value) {
 }
 
 # ---- MSR ------------------------------------------------------------------
-Add-Type -Path (Join-Path $root 'tools\lhm\LibreHardwareMonitorLib.dll')
+# Add-Type -Path fails on this assembly with "Unable to load one or more of
+# the requested types" (it tries to resolve every type in the DLL, including
+# ones whose dependencies are missing). The types we need load fine, so the
+# assembly is loaded directly and the failure is non-fatal.
+$dllPath = Join-Path $root 'tools\lhm\LibreHardwareMonitorLib.dll'
+try { Add-Type -Path $dllPath -ErrorAction Stop } catch {
+  Log "Add-Type -Path failed (non-fatal): $($_.Exception.Message)"
+}
+if (-not ('LibreHardwareMonitor.PawnIo.IntelMsr' -as [type])) {
+  [void][System.Reflection.Assembly]::LoadFrom($dllPath)
+}
+if (-not ('LibreHardwareMonitor.Hardware.GroupAffinity' -as [type])) {
+  [void][System.Reflection.Assembly]::LoadFrom($dllPath)
+}
 $msr = New-Object LibreHardwareMonitor.PawnIo.IntelMsr
 $tj = [uint64]0
 $tjMax = 100
