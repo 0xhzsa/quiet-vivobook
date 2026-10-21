@@ -26,7 +26,7 @@ The short version:
 > 300 W and <50 % air-cooled, the seven-figure claim is false.
 >
 > One BMC fan-power reading from ATL02 would replace the model's only
-> load-bearing guess. Code and failure conditions: [REPO_URL]
+> load-bearing guess. Code and failure conditions: https://github.com/0xhzsa/quiet-vivobook
 
 **The ask:** one `FanPower` / `P12V_FAN` reading, or a 30-day fan-duty trace.
 
@@ -51,7 +51,7 @@ The short version:
 > means **~85–96 %** of the fleet's power bill. One question decides it: who
 > pays the power bill?
 >
-> Code + falsification: [REPO_URL]
+> Code + falsification: https://github.com/0xhzsa/quiet-vivobook
 
 ### Post 2 (follow-up in the same thread)
 
@@ -75,7 +75,7 @@ The short version:
 > the saving is Hypertec's. One BMC fan-power reading and one answer on the power
 > contract would settle it.
 >
-> Code and the full falsification table: [REPO_URL]. No ask beyond the
+> Code and the full falsification table: https://github.com/0xhzsa/quiet-vivobook. No ask beyond the
 > datapoint.
 
 **The ask:** the air-cooled H100/H200 node count, and who pays the meter.
@@ -105,7 +105,7 @@ pitch the fan claim.
 > unattributable to Modal; it is immaterial next to the thing you already sell.
 >
 > Not pitching you the fan claim. If it is useful, the case is here:
-> [REPO_URL]. If Modal ever wants provider-side fan telemetry as a procurement
+> https://github.com/0xhzsa/quiet-vivobook. If Modal ever wants provider-side fan telemetry as a procurement
 > term, that is the only version that makes sense.
 
 **The ask:** nothing for the fan claim. If Modal wants to pursue the
@@ -122,7 +122,7 @@ $9.1M at R=36, and it belongs to the providers."
 
 - [ ] All self-tests pass: `lambda_case` 13, `together_case` 16, `modal_case`
       17, `portfolio` 10, `case` 12, `cycling` 17, `targets` 12 — 97 checks.
-- [ ] `[REPO_URL]` is replaced with a live URL.
+- [x] Live repo URL: https://github.com/0xhzsa/quiet-vivobook
 - [ ] The post tags **one founder + one company**, not three.
 - [ ] The falsifier is in the same thread, not buried in the repo.
 - [ ] No fan wattage is presented as measured. It is a 1 kW input.

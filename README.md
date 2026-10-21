@@ -9,6 +9,8 @@ under which that claim is **false**.
 > fan power consumption and thermal cycling."
 > — @0xAlcibiades, 2025-07-06
 
+**Repo:** https://github.com/0xhzsa/quiet-vivobook
+
 This repo takes that sentence seriously enough to try to break it.
 
 ## The one number

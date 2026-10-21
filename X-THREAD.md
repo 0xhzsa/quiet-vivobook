@@ -2,7 +2,7 @@
 
 Twelve posts. One node class: an air-cooled **8-GPU node with a 1 kW fan tray**.
 Every number is checkable against `CASE-STUDY.md`, `THREE-CASES.md`, and
-`code/audit.py`. Replace `[REPO_URL]` and `[TARGET]` before posting.
+`code/audit.py`. Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before posting.
 
 The audience is the founder/CTO of an air-cooled GPU cloud who **controls the
 BMC and pays the power bill**. If the fans belong to a landlord or a capacity
@@ -175,7 +175,7 @@ server measurement says 87.5 %. That gap is the argument.
 
 **12/12**
 
-> Code, math, falsification: [REPO_URL]
+> Code, math, falsification: https://github.com/0xhzsa/quiet-vivobook
 >
 > If you run an air-cooled GPU cloud and control the BMC, I'll send the model.
 > One reading replaces the load-bearing physical guess.
@@ -194,7 +194,7 @@ server measurement says 87.5 %. That gap is the argument.
 >
 > 24k H100s ≈ **$2.9–3.1M/yr**. The seven-figure line is **~954–1,036 nodes**.
 >
-> Code + model + falsification: [REPO_URL]
+> Code + model + falsification: https://github.com/0xhzsa/quiet-vivobook
 
 ## Do not tag (Crusoe)
 
@@ -220,7 +220,7 @@ claim would be the fastest way to lose the argument.
 
 ## Posting checklist
 
-- [ ] Repo is public and `[REPO_URL]` resolves
+- [x] Repo is public: https://github.com/0xhzsa/quiet-vivobook
 - [ ] `uv run --no-project python code/case.py --selftest` passes on a clean machine
 - [ ] `uv run --no-project python code/audit.py` exits 0; `--strict` exits 1 by design and the four warnings are disclosed
 - [ ] The tag is one qualified operator, not a list; do not tag liquid-only sites

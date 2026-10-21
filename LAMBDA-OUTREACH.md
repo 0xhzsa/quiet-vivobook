@@ -18,7 +18,7 @@ state the failure condition in the same thread.** No pitch, no service, no
 > @stephenbalaban @LambdaAPI ATL02 is ~12 MW air-cooled. At 1 kW fan/node, a
 > 95→35% duty cut is $1.23–1.39M/yr in fan + fatigue at 1.3–1.8× ($1.78M at
 > R=36) — and ~1.1 MW of freed capacity, ~$18M/yr at your $3.99 H100 price.
-> One BMC fan reading settles it. [REPO_URL]
+> One BMC fan reading settles it. https://github.com/0xhzsa/quiet-vivobook
 
 Character count: ~265. Fits a standard post.
 
@@ -94,7 +94,7 @@ ignored. The public post is the introduction.
   needs capex and demand. The post says "freed capacity", not "savings".
 - **Do not claim the fan tray is 1 kW.** It is an input. The ask is the reading.
 - **Do not attach a PDF.** Link the repo. The code is the credibility.
-- **Do not post until the repo is public and the `[REPO_URL]` is real.**
+- **The repo is public: https://github.com/0xhzsa/quiet-vivobook.**
 
 ---
 
@@ -102,7 +102,7 @@ ignored. The public post is the introduction.
 
 - [ ] `uv run python code/lambda_case.py --selftest` → 13/13
 - [ ] `LAMBDA-CASE.md` numbers match the model output (last check: 2026-10-20)
-- [ ] `[REPO_URL]` replaced with the real URL
+- [x] Repo URL: https://github.com/0xhzsa/quiet-vivobook
 - [ ] Repo is public and the README links `LAMBDA-CASE.md`
 - [ ] The post says "ATL02", not "Lambda's fleet"
 - [ ] The post says "if it comes back at 300 W, the number shrinks"

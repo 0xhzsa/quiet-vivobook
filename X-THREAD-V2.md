@@ -9,7 +9,7 @@ path, and the fact that the A-B-A throughput run was confounded. That refusal
 is the credibility. Then it bridges to servers with the same measurement shape,
 and finally to the founders.
 
-Replace `[REPO_URL]` and `[TARGET]` before posting.
+Repo: https://github.com/0xhzsa/quiet-vivobook. Replace `[TARGET]` before posting.
 
 ---
 
@@ -28,13 +28,13 @@ Replace `[REPO_URL]` and `[TARGET]` before posting.
 
 **2/15**
 
-> Machine: Vivobook 15 X1502VA, i9-13900H, 14C/20T, 16 GB, Windows 11, BIOS
-> 306.
+> Machine: Vivobook 15 X1502VA, i9-13900H, 14C/20T, Windows 11.
 >
 > Stack: PowerShell + LibreHardwareMonitor. Writes the ASUS thermal mode, reads
 > it back, logs package W, temps, work/s.
 >
-> Artifacts: `data/profiles.csv`, `controller/fan-scan/`. [REPO_URL]
+> Artifacts: `data/profiles.csv`, `controller/fan-scan/`.
+> https://github.com/0xhzsa/quiet-vivobook
 
 ---
 
@@ -195,7 +195,7 @@ Replace `[REPO_URL]` and `[TARGET]` before posting.
 
 **15/15**
 
-> The test I want on one node:
+> The one-node test:
 > 1. read FanPower / P12V_FAN / per-fan W
 > 2. set duty via BMC
 > 3. fixed workload, A/B/A, 30 days
@@ -203,7 +203,7 @@ Replace `[REPO_URL]` and `[TARGET]` before posting.
 >
 > Pass: <=0.625% throughput loss. Fail: ~20.6% (my simulation) or >1%.
 >
-> Code: [REPO_URL]. One trace settles it.
+> Code: https://github.com/0xhzsa/quiet-vivobook. One trace settles it.
 
 ---
 
@@ -228,5 +228,5 @@ Replace `[REPO_URL]` and `[TARGET]` before posting.
 
 ## Approval
 
-Not posted. `[REPO_URL]` and `[TARGET]` are placeholders. Nothing committed or
-pushed; the directory is not a git repository.
+Not posted. `[TARGET]` is still a placeholder. The repo is public at
+https://github.com/0xhzsa/quiet-vivobook and the package is committed and pushed.
