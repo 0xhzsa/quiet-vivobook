@@ -1,26 +1,31 @@
-# The thread: laptop as GPU simulator - 6 posts, each under 280 chars
+# The thread: 6 posts, each under 280 characters
 
-Built from `code/` as it stands. Every number is computed by the repository's
-own modules, and `code/audit.py` fails the build if a documented number
-drifts from the code.
+Built by `code/` as it stands. Every number in every post is computed live
+from the repository's own modules by the build script, and `code/audit.py`
+fails the build if a documented number drifts from the code.
+
+Post 1 is the course post. It goes first because it is the one
+@neuralkian and @freeCodeCamp have a reason to share: it quotes the course
+accurately, credits it, and asks the question the course leaves open.
 
 The framing is deliberately not "three companies, three verdicts". The
 physics is identical everywhere; what changes is who holds the fan tray and
 who pays the meter. That is the party worth talking to.
 
 Repo: https://github.com/0xhzsa/quiet-vivobook
+Course: https://kiankyars.github.io/gigawatt/
 
 ---
 
 **1/6**
 
-> I don't own a GPU server. I own an ASUS Vivobook.
+> Kian Kyars' "From Watts to Tokens" (@neuralkian, @freeCodeCamp) follows
+> one watt from the grid to GPU transistors and back out as heat.
 > 
-> So I built a thermal controller on my laptop and made it simulate an 8-GPU node.
+> I took the cooling chapter and asked what the course doesn't: what if you
+> turn the fans down?
 > 
-> Then I tried to break my own model and published what broke.
-> 
-> Every number traceable to a file. github.com/0xhzsa/quiet-vivobook
+> github.com/0xhzsa/quiet-vivobook
 
 
 ---
@@ -41,13 +46,13 @@ Repo: https://github.com/0xhzsa/quiet-vivobook
 
 **3/6**
 
-> Measured by @0xAlcibiades: 120W -> 15W fan on a real 64-core
-> Ampere server. 87.5% cut.
+> The fan law is where the naive answer breaks.
 > 
-> The affinity law says 95%. Wrong: fan motors have a loss floor that
-> does not vanish with speed.
+> Affinity law says 95%. @0xAlcibiades measured 120W -> 15W on a real
+> server: 87.5%.
 > 
-> But quiet-lab gives duty RANGES, not points. So every saving is a BAND.
+> Real fan motors have a loss floor. And quiet-lab gives duty RANGES, so the
+> fit spans b = 0.085-0.875. Every saving is a BAND.
 > 
 > code/fanlaw.py
 
@@ -56,14 +61,14 @@ Repo: https://github.com/0xhzsa/quiet-vivobook
 
 **4/6**
 
-> 8-GPU node, 8x700W, 1kW tray, steady state.
+> 8-GPU node, 8x700W, 1kW fan tray, steady state.
 > 
 > The saving is not a constant, it is a function of the room.
 > 30 C inlet: 44% of fan power. 18 C: 85%.
 > 
 > The duty that holds full boost is 53%, not 35%.
-> At 35% you sit on the throttle knee: 27% of
-> the work gone.
+> At 35% you sit on the throttle knee: 27% of the
+> work gone.
 > 
 > code/thermal_model.py
 
@@ -77,8 +82,8 @@ Repo: https://github.com/0xhzsa/quiet-vivobook
 > EKF estimates die temp + sensor bias. MPC picks the duty.
 > Noisy sensor, load that changes.
 > 
-> Closed loop: 160 W of fans. Cheapest CONSTANT duty at
-> the same peak: 221 W. 28% less.
+> Closed loop 160 W of fans. Cheapest CONSTANT duty at the
+> same peak: 221 W. 28% less.
 > 
 > code/closed_loop.py. The test can fail.
 
@@ -87,11 +92,12 @@ Repo: https://github.com/0xhzsa/quiet-vivobook
 
 **6/6**
 
-> The meter decides who gets this.
+> Where the meter sits decides who gets this.
 > 
-> Lambda @stephenbalaban @LambdaAPI: $1.43M/yr
-> Together @vipulved @togethercompute: $1.21M/yr, meter shared with
-> Hypertec. Modal @bernhardsson @modal: $7.31M/yr, at its providers.
+> Lambda @stephenbalaban @LambdaAPI: $1.43M/yr at R=36
+> Together @vipulved @togethercompute: $1.21M/yr, meter
+> with @hypertec. Modal @bernhardsson @modal: $7.31M/yr at
+> its 13 providers.
 > 
 > One BMC trace replaces the biggest assumption.
 
@@ -110,29 +116,34 @@ Repo: https://github.com/0xhzsa/quiet-vivobook
 | 8-GPU saving vs inlet | 43.6 % at 30 C, 85.1 % at 18 C | **modelled**, same solve |
 | throttle-knee operating point | 35.3 % duty, 86.1 % saved, 26.7 % work cost | **modelled** |
 | closed loop vs constant duty | 27.6 % less fan power at the same peak temperature | **measured in simulation** |
-| Lambda ATL02 | energy $707,692/yr; $1,427,992/yr at R=36 | **modelled** on public anchors |
-| Together 8k | energy $601,779/yr; $1,214,279/yr at R=36 | **modelled**; the meter is shared with partners |
+| Lambda ATL02 | $1,427,992/yr at R=36; energy $707,692/yr | **modelled** on public anchors |
+| Together 8k | $1,214,279/yr at R=36; energy $601,779/yr | **modelled**; the meter is shared with partners |
 | Modal | $0 to Modal; $7,312,387/yr at its 13 node providers | **modelled** |
 | fan tray wattage | 1,000 W on a dense 8-GPU node | **assumed**, no source; scales every dollar |
 
 ## Who to tag, and why
 
+Every handle below was checked against x.com and resolves to a live account.
+
 | tag | role | why |
 |---|---|---|
-| **@0xAlcibiades** | upstream maintainer, quiet-lab | the 120 W -> 15 W measurement everything else is calibrated against |
-| **@stephenbalaban** / **@LambdaAPI** | Lambda CTO + company | holds the BMC and the meter at ATL02; the Atlanta landlord is **EdgeConneX** |
-| **@vipulved** / **@togethercompute** | Together CEO + company | operates the clusters; the H100/H200 capacity is co-built with **Hypertec** |
-| **@bernhardsson** / **@modal** | Modal CEO + company | no fans of its own; the $7.31M/yr fan bill sits with its 13 capacity providers |
-| **@kiankyars** | Gigawatt course author | PUE, cooling and power models used in the fleet arithmetic |
-| **Hypertec** | Together's co-builder | holds capacity, and possibly the meter, on part of the fleet |
-| **EdgeConneX** | Lambda's Atlanta landlord | holds the site under the lease |
-| Modal's 13 capacity providers | the actual meter holders | where $7.31M/yr of fan power actually sits |
+| **@neuralkian** | Kian Kyars, "From Watts to Tokens" | the cooling, PUE and power models the fleet arithmetic uses |
+| **@freeCodeCamp** | hosts the course | the course is 8 hours of the same physics, free |
+| **@0xAlcibiades** | upstream maintainer, quiet-lab | the 120 W -> 15 W measurement everything is calibrated against |
+| **@stephenbalaban** / **@LambdaAPI** | Lambda CTO + company | holds the BMC and the meter at ATL02 |
+| **@EdgeConneX** | Lambda's Atlanta landlord | holds the site under the lease |
+| **@vipulved** / **@togethercompute** | Together CEO + company | operates the clusters |
+| **@hypertec** | Together's co-builder | brought the capacity, and may hold part of the meter |
+| **@bernhardsson** / **@modal** | Modal CEO + company | no fans of its own; the $7.31M/yr bill is its providers' |
+| **@CrusoeAI** | Crusoe | named in the same capacity-provider class |
+| **@VoltagePark** | Voltage Park | owns air-cooled capacity, controls its own BMCs |
+| **@WHITEFIBER** | WhiteFiber | a known Modal capacity customer |
 
 ## What to send with the thread
 
 - `code/fanlaw.py` - the calibrated fan law, with the band it carries
-- `code/thermal_model.py` - steady-state solve, safe duty, inlet-temperature envelope
-- `code/closed_loop.py` - EKF + MPC, and the experiment that compares them
+- `code/thermal_model.py` - steady-state solve, derived duty, inlet envelope
+- `code/closed_loop.py` - EKF + MPC and the experiment that compares them
 - `code/audit.py` - independent Decimal reference; 0 failures, 0 warnings
 - `code/server_thermal_controller.py` - the CLI over the two modules above
 - `controller/fan-scan/scheme-ab.ps1` - the clean laptop A/B harness

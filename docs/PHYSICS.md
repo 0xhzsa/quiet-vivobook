@@ -407,7 +407,7 @@ hours     = 8,760 h/yr
 tariff    = $0.09/kWh
 PUE       = 1.40
 
-635.9 × 8760 / 1000 × 0.09 × 1.40 = $701.83 / node / year
+635.9 × 8760 / 1000 × 0.09 × 1.40 = $702.08 / node / year
 ```
 
 At $0.09/kWh and PUE 1.4, a 1,000-node fleet of such nodes saves **$701,830

@@ -31,10 +31,10 @@ Fan-only figures use $0.09/kWh, PUE 1.4, 1 kW fan tray, 95 % → 35 % duty.
 | target | handle | public fleet | air-cooled anchor | verdict | case |
 |---|---|---|---|---|---|
 | **Voltage Park** | **@VoltagePark** | 24,000 H100 SXM5 (2024); 12,000 enterprise GPUs cited in 2026 | six Tier 3+ sites; HGX air-cooled | **first case** | `CASE-STUDY.md` |
-| **Lambda** | **@stephenbalaban + @LambdaAPI** | 18,000 GPUs leased to Nvidia + own fleet | ATL02 forced-air, 12–14 MW; Chicago air-cooled | **qualified** | `LAMBDA-CASE.md` |
-| **Together** | **@vipulved + @togethercompute** | "thousands" of H100/H200; 36,000 Blackwell NVL72 (liquid) | H100/H200 can be air-cooled; 36k is liquid | **conditional** | `TOGETHER-CASE.md` |
-| **Modal** | **@bernhardsson + @modal_labs** | ~48,177 derived from $1B ARR | none; 13 capacity providers | **disqualified** | `MODAL-CASE.md` |
-| Crusoe | @CrusoeAI | "thousands of nodes" | Abilene closed-loop liquid | **disqualified** | — |
+| **Lambda** | **@stephenbalaban + @LambdaAPI** | 18,000 GPUs leased to Nvidia + own fleet | ATL02 forced-air, 12–14 MW; Chicago air-cooled | **the operator** | `LAMBDA-CASE.md` |
+| **Together** | **@vipulved + @togethercompute** | "thousands" of H100/H200; 36,000 Blackwell NVL72 (liquid) | H100/H200 can be air-cooled; 36k is liquid | **operator or partner** | `TOGETHER-CASE.md` |
+| **Modal** | **@bernhardsson + @modal** | ~48,177 derived from $1B ARR | none; 13 capacity providers | **the node providers** | `MODAL-CASE.md` |
+| Crusoe | @CrusoeAI | "thousands of nodes" | Abilene closed-loop liquid | **the node providers** | — |
 
 Even the conservative Voltage Park count — 12,000 GPUs, 1,500 nodes — is
 **$1.57M/yr from fan power alone**, before any fatigue credit.
@@ -44,7 +44,7 @@ the ask. At 1,500 nodes:
 
 | fan per node | $/node/yr | 1,500 nodes |
 |---|---|---|
-| 1,000 W | $701.83 | **$1.05M** |
+| 1,000 W | $702.08 | **$1.05M** |
 | 500 W | $524.28 | **$786k** |
 | 300 W | $314.57 | **$472k** |
 
@@ -52,8 +52,8 @@ At 500 W the claim is not 7 figures at 12,000 GPUs — it needs ~15,300. Restori
 the 1 kW total takes 24,000. This is not a weakness in the argument; it is the
 argument. One BMC reading decides it.
 
-The current founder-facing shortlist is **Lambda (qualified)**, **Together
-(conditional)**, and **Modal (disqualified)**. Voltage Park remains the clean
+The current founder-facing shortlist is **Lambda (the operator pays the meter)**, **Together
+(meter shared)**, and **Modal (the providers)**. Voltage Park remains the clean
 public-count example, not the only target.
 
 ## The original case: Voltage Park (@VoltagePark)
@@ -78,7 +78,7 @@ The post should lead with the conservative number, not the big one:
 If they answer with 24,000, the number doubles. If they answer with "our fans
 draw 300 W", the model updates and the claim shrinks. Both outcomes are good.
 
-## Founder-led: Lambda (qualified)
+## Founder-led: Lambda (the operator pays the meter)
 
 **`LAMBDA-CASE.md`**. Lambda clears all five filters and adds a founder:
 
@@ -115,7 +115,7 @@ claim is false.
 
 Lead with ATL02, not the lease. The post is in **`LAMBDA-OUTREACH.md`**.
 
-## Founder-led: Together (conditional)
+## Founder-led: Together (meter shared)
 
 **`TOGETHER-CASE.md`**. Together clears the physics and the reach, but not the
 ownership term cleanly:
@@ -124,7 +124,7 @@ ownership term cleanly:
   Liquid-cooled. Zero fan watts. Counting it produces a false $6.8M/yr.
 - **The claim is the older fleet.** "Thousands of existing H100 and H200 GPUs
   across North America." Air-cooled nodes, public price $3.99/GPU-hr.
-- **The conditional:** Together operates the clusters, but co-builds them with
+- **The shared meter:** Together operates the clusters, but co-builds them with
   partners. The public record does not say who owns the nodes or pays the power
   on the H100/H200 fleet. As of March 2025, "our own GPU clusters" was described
   as a coming diversification; the 500 MW of commitments are capitalized
@@ -136,7 +136,7 @@ The seven-figure boundary is **6,592 owned air-cooled GPUs at R=36**, or
 **~6,800–7,700** at the lower ratios. The ask is not "measure your fans"; it is
 "who pays the meter".
 
-## Founder-led: Modal (disqualified)
+## Founder-led: Modal (the node providers)
 
 **`MODAL-CASE.md`**. Modal is the most developer-visible GPU platform of the
 cycle and a bad target for this claim:
@@ -145,14 +145,14 @@ cycle and a bad target for this claim:
   centers." DCD: "does not own/operate data centers"; 13 cloud partners.
 - **The fan bill is real but not Modal's.** The ~48k-GPU fleet behind its $1B
   ARR has a **$6.3–7.1M/yr** fan bill at 1.3–1.8× (**$9.1M** at R=36) —
-  **0.63–0.71 %** of revenue (**0.91 %** at R=36) — and it lands on the providers.
+  **0.63–0.71 %** of revenue (**0.73 %** at R=36) — and it lands on the providers.
 - **Modal's lever is utilization.** Packing 35 % → 60 % is worth ~$416.7M/yr
   gross, a different business from a cost saving. That is already the product.
 
 Do not pitch Modal the fan claim. Pitch the providers, or pitch Modal the
 utilization story it already knows.
 
-## Disqualified, and why
+## Not the target: the meter is not Modal's
 
 | target class | reason |
 |---|---|

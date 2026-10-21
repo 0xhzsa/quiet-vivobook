@@ -10,7 +10,7 @@ This is the consolidated result of the three founder-led cases:
 
 | case | anchor | direct saving | capacity value | verdict |
 |---|---|---:|---:|---|
-| **Lambda** | ATL02 12 MW, 9,408 GPUs | **$1.23–1.39M/yr** | **$18.3M/yr** | **qualified** |
+| **Lambda** | ATL02 12 MW, 9,408 GPUs | **$1.23–1.39M/yr** | **$18.3M/yr** | **the operator** |
 | **Together** | 8,000 H100/H200, 1,000 nodes | **$0.75[‐‑‒–—―-]0.88M/yr** at 1.3[‐‑‒–—―-]1.8[‐‑‒–—―-] | **$10.4M/yr** | **operator or partner** |
 | **Modal** | 48,177 derived H100-equivalents | **$0** to Modal | **$0** to Modal | **$7.31M at the 13 providers** |
 
@@ -61,7 +61,7 @@ Every case answers the same four questions. The last two decide the verdict.
 
 | target | site | node control | BMC | pays fan power | verdict |
 |---|---|---|---|---|---|
-| Lambda | lease (EdgeConneX) | yes | yes | yes | **qualified** |
+| Lambda | lease (EdgeConneX) | yes | yes | yes | **the operator** |
 | Together | partner + own | partial | yes | partial | **operator or partner** |
 | Modal | none | no | no | no | **the node providers** |
 
@@ -131,7 +131,7 @@ GPUs, **33.1 %**. At the cycle simulator's **1.3–1.8×**, the 8k requirement i
 the direct claim cannot reach $1M at any ownership share.
 
 The energy-only claim needs **8,904 GPUs** at 1 kW. At the 8,000-GPU base, the
-energy leg alone is $898,769 — below $1M. The fatigue leg is what carries the
+energy leg alone is $601,779 — below $1M. The fatigue leg is what carries the
 base case over the line. That is a credibility risk, and it is stated rather
 than hidden.
 
@@ -140,7 +140,7 @@ than hidden.
 Modal owns no data centers and no nodes. Its capacity pool spans 20+ clouds and
 13 named partners. The fan bill behind its $1B ARR is real — about
 **$4.50–5.31M/yr** at 1.3–1.8× (**$7.31M** at R=36) on the derived fleet — but
-it is **0.63–0.71 % of ARR** (**0.91 %** at R=36), and it belongs to the
+it is **0.45–0.53 % of ARR** (**0.73 %** at R=36), and it belongs to the
 providers. To capture $1M directly, Modal would need to own
 **6,592–9,100 GPUs** depending on the fatigue ratio; it owns zero.
 

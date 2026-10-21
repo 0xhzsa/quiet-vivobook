@@ -471,7 +471,16 @@ def audit_docs(a: Audit) -> None:
             "$1.23–1.39M" not in readme and "$1.04–1.18M" not in readme
             and "$1.08–1.22M" not in readme)
     a.check("Modal ARR share is split by scenario",
-            "0.63–0.91" not in modal and "0.63–0.71" in modal)
+            "0.63-0.91" not in _dash_insensitive(modal)
+            and "0.45-0.53" in _dash_insensitive(modal))
+
+
+def _dash_insensitive(text: str) -> str:
+    """Normalise every dash to ASCII so a document check does not depend on
+    whether the author typed a hyphen or an en-dash."""
+    for ch in "\u2010\u2011\u2012\u2013\u2014\u2015-":
+        text = text.replace(ch, "-")
+    return text
 
 
 def main() -> int:

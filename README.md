@@ -45,8 +45,8 @@ Provenance is one of four words, and it is used strictly:
 | Model against the upstream measurement | 86.10 % modelled vs 87.5 % measured — 1.4 points apart | cross-check | the same command, and the self-test that asserts it |
 | Throughput-cost ledger | 0.00 % at the shipped duty; 26.67 % at the 83 °C knee; 6.92 % measured on the laptop; 20.60 % (laptop MPC) | simulated, and measured for the laptop | `code/throughput.py` |
 | Fatigue damage reduction, controlled vs stock | 1.3–1.8× Coffin-Manson; ≈2.0× with the Norris-Landzberg mean-temperature term | simulated | `code/cycling.py` (17 self-tests) |
-| Lambda ATL02, 1,176 nodes | energy $707,449/yr; $0.88–1.04M/yr at 1.3–1.8×; $1,427,749/yr at R=36 | modelled | `code/lambda_case.py`, `code/portfolio.py` |
-| Together, 8,000 air-cooled GPUs, 100 % owned | energy $601,572/yr; $0.75–0.88M/yr at 1.3–1.8×; $1,214,072/yr at R=36 | modelled, conditional on ownership | `code/together_case.py`, `code/portfolio.py` |
+| Lambda ATL02, 1,176 nodes | energy $707,692/yr; $0.88–1.04M/yr at 1.3–1.8×; $1,427,992/yr at R=36 | modelled | `code/lambda_case.py`, `code/portfolio.py` |
+| Together, 8,000 air-cooled GPUs, 100 % owned | energy $601,779/yr; $0.75–0.88M/yr at 1.3–1.8×; $1,214,279/yr at R=36 | modelled, conditional on ownership | `code/together_case.py`, `code/portfolio.py` |
 | Modal | $0 to Modal (the fan bill behind its ARR belongs to 13 capacity providers) | modelled | `code/modal_case.py` |
 | Fan tray wattage | 1,000 W on a dense 8-GPU node | assumed | `code/case.py`, `NodeClass.fan_w` |
 | Tariff, PUE | $0.08–0.09/kWh, PUE 1.35–1.40 | assumed | parameters of the case scripts |
@@ -72,7 +72,7 @@ PUE 1.4, an air-cooled 8-GPU node with a 1 kW fan tray, uncontrolled at 95 %
 duty and controlled at the modelled safe duty of 52.9 %:
 
 ```
-635.9 W saved × 8,760 h × $0.09/kWh × 1.4 = $701.83 / node / year
+635.9 W saved × 8,760 h × $0.09/kWh × 1.4 = $702.08 / node / year
 ```
 
 PUE multiplies the *saving*, not the facility load: a watt removed at the
@@ -85,7 +85,7 @@ Per node, at $0.09/kWh and PUE 1.4, with the shipped duty:
 | Vivobook 15 (client) | 2.5 W | 100 % → 55 % | 1.8 | $2.03 | $6.67 | $8.70 | 114,980 |
 | 1U CPU node | 60 W | 80 % → 35 % | 27.9 | $30.75 | $76.56 | $107.31 | 9,319 |
 | 4-GPU node | 400 W | 90 % → 52.9 % | 211.0 | $232.87 | $255.21 | $488.08 | 2,049 |
-| 8-GPU dense node | 1,000 W | 95 % → 52.9 % | 635.9 | $701.83 | $612.50 | $1,314.33 | 761 |
+| 8-GPU dense node | 1,000 W | 95 % → 52.9 % | 635.9 | $702.08 | $612.50 | $1,314.33 | 761 |
 
 The claim is a scale claim. Below the fleet size where fan power alone clears
 the target, the fatigue leg is arithmetically irrelevant — and the fatigue leg
@@ -95,7 +95,7 @@ fleets and gets three different answers:
 
 | fleet | energy leg | 1.3–1.8× Coffin-Manson | at R=36 | verdict |
 |---|---:|---:|---:|---|
-| Lambda ATL02, 1,176 nodes | $707,449/yr | $0.88–1.04M/yr | $1,427,749/yr | **qualified** |
+| Lambda ATL02, 1,176 nodes | $707,692/yr | $0.88–1.04M/yr | $1,427,992/yr | **the operator** |
 | Together, 8,000 air-cooled GPUs, 100 % owned | $601,779/yr | $0.75[‐‑‒–—―-]0.88M/yr | $1,214,279/yr | **operator or partner** |
 | Modal | $0 to Modal | $0 to Modal | $0 to Modal | **$7.31M at its 13 node providers** |
 
@@ -175,7 +175,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File controller/report.ps1       
 README.md              this file
 CASE-STUDY.md          the full argument, the equations and the failure conditions
 THREE-CASES.md         the three founder cases side by side, and the verdicts
-LAMBDA-CASE.md         case 2: Lambda, qualified, three legs
+LAMBDA-CASE.md         case 2: Lambda, the operator, three legs
 TOGETHER-CASE.md       case 3: Together, meter shared with partners
 MODAL-CASE.md          case 4: Modal, the fan bill sits with its node providers
 TARGETS.md             who this is for, and why liquid-cooled fleets are excluded

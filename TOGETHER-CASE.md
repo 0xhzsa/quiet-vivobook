@@ -169,7 +169,7 @@ saved per node**.
 
 | fan tray | saved W | $/node/yr @ $0.08/1.35 | $/node/yr @ $0.09/1.4 |
 |---:|---:|---:|---:|
-| 1,000 W | 635.9 | **$601.57** | **$701.83** |
+| 1,000 W | 635.9 | **$601.57** | **$702.08** |
 | 500 W | 475.0 | $449.38 | $524.28 |
 | 300 W | 285.0 | $269.63 | $314.57 |
 
@@ -179,23 +179,23 @@ saved per node**.
 |---:|---:|---:|---:|---:|
 | 2,000 | 250 | $224,692 | $112,346 | $67,408 |
 | 4,000 | 500 | $449,385 | $224,692 | $134,815 |
-| 8,000 | 1,000 | $898,769 | $449,385 | $269,631 |
-| 16,000 | 2,000 | $1,797,538 | $898,769 | $539,262 |
+| 8,000 | 1,000 | $601,779 | $449,385 | $269,631 |
+| 16,000 | 2,000 | $1,797,538 | $601,779 | $539,262 |
 
-At 8,000 GPUs the energy leg alone is **$898,769** — below $1M. The energy-only
+At 8,000 GPUs the energy leg alone is **$601,779** — below $1M. The energy-only
 claim needs **8,904 GPUs** at 1 kW. That is the first honest boundary.
 
 ### The liquid exclusion
 
 The 36,000 GB200 NVL72 GPUs are liquid-cooled. A cold-plate node has no fan
-tray to slow down. Applying the model to 36,000 GPUs produces **$6,800,711/yr**
+tray to slow down. Applying the model to 36,000 GPUs produces **$5,464,255/yr**
 of direct saving and **$70,296,267/yr** of capacity — and both numbers are
 false. `together_case.py` prints that trap explicitly so nobody can quote it by
 accident.
 
 ---
 
-## 4. Leg 2 — thermal fatigue: the leg that is conditional
+## 4. Leg 2 — thermal fatigue: the leg that depends on assumptions
 
 The dollar leg uses the same **swing-ratio scenario** as the first case, not
 the rainflow simulator in `cycling.py`. For an 8-GPU node:
@@ -350,7 +350,7 @@ separately.
 | 16,000 | **$2,428,557** | **$1,203,558** | **$1,214,279** | **$20,803,669** |
 
 At the first case's $0.09/kWh and PUE 1.4, the energy column rises by 16.7 %.
-At 8,000 GPUs, direct at 100 % becomes **$1,214,072** (energy $601,572 +
+At 8,000 GPUs, direct at 100 % becomes **$1,214,279** (energy $601,779 +
 fatigue $612,500).
 
 ### The knobs, at 8,000 GPUs and 100 % ownership

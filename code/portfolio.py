@@ -2,17 +2,19 @@
 """
 Three founder-led cases in one place.
 
-    Lambda    qualified      leases the site, operates the nodes, pays the meter*
-    Together  conditional    operates the clusters; partner owns part of the bill
-    Modal     disqualified   no data centers, no nodes, no fans
+    Lambda    the operator    leases the site, operates the nodes, pays the meter*
+    Together  meter shared    operates the clusters; a partner owns part of it
+    Modal     the providers   no data centers, no nodes, no fans of its own
 
-    * Lambda's power payment is an assumption, not a public disclosure. The
-      payment is an assumption, not a public disclosure, so the model treats
-      it as true and says so.
+    * Lambda's power payment is an assumption, not a public disclosure, so the
+      model treats it as true and says so.
 
 The point of the portfolio is not that three companies save seven figures. It
 is that the same arithmetic lands in three different places once ownership is
 treated as a first-class term. The physics is identical; the meter is not.
+
+And it is not a verdict on any of them. It is a statement about where the fan
+tray is and whose meter it hangs off.
 
     uv run python code/portfolio.py --selftest
     uv run python code/portfolio.py
@@ -139,20 +141,24 @@ def main() -> int:
     print("  Lambda   7 figures at an operating air-cooled site at R=36 "
           f"(${lam.site(12)['saving']:,.0f}/yr); "
           f"energy alone ${lam.site(12)['energy']:,.0f}/yr")
-    print("  Together 7 figures only above 5,296 owned air-cooled GPUs at R=36; "
-          "at the simulator's 1.3-1.8x the boundary is ~6,800-7,700")
+    print("  Together 7 figures only above 6,592 owned air-cooled GPUs at R=36; "
+          "at the simulator's 1.3-1.8x the boundary is 9,080-10,712")
     m = mod.fan_bill(mod.active_gpus(1e9))
     u = mod.utilization_gain(mod.active_gpus(1e9), 0.35, 0.60)
+    m13 = mod.fan_bill(mod.active_gpus(1e9), ratio=1.3)["total"]
+    m18 = mod.fan_bill(mod.active_gpus(1e9), ratio=1.8)["total"]
     print(f"  Modal    not a target: the ${m['total']:,.0f}/yr fan bill at R=36 "
-          f"is 0.91% of ARR (0.63-0.71% at 1.3-1.8x) and belongs to 13 providers")
+          f"is {100 * m['total'] / 1e9:.2f}% of ARR "
+          f"({100 * m13 / 1e9:.2f}-{100 * m18 / 1e9:.2f}% at 1.3-1.8x) "
+          f"and belongs to 13 providers")
     print(f"           its utilization lever is ${u['revenue']:,.0f}/yr gross, "
           "not a fan saving")
 
     print("\nread next")
     print("  THREE-CASES.md      the comparison and the verification")
-    print("  LAMBDA-CASE.md      qualified")
-    print("  TOGETHER-CASE.md    conditional")
-    print("  MODAL-CASE.md       disqualified")
+    print("  LAMBDA-CASE.md      the operator")
+    print("  TOGETHER-CASE.md    the meter is shared")
+    print("  MODAL-CASE.md       the meter sits with its providers")
     return 0
 
 

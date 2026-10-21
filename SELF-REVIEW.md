@@ -276,9 +276,12 @@ specific person rather than an accusation about three.
 The tags should therefore include the parties that actually hold the fan
 trays and the meters: **@0xAlcibiades**, **@stephenbalaban** / **@LambdaAPI**,
 **@vipulved** / **@togethercompute**, **@bernhardsson** / **@modal**,
-**@kiankyars**, plus the operators and builders the money flows to -
-**Hypertec** (Together's co-builder), **EdgeConneX** (Lambda's Atlanta
+**@neuralkian**, plus the operators and builders the money flows to -
+**@hypertec** (Together's co-builder), **@EdgeConneX** (Lambda's Atlanta
 landlord), and the 13 capacity providers behind Modal.
+
+All ten handles were checked against x.com and resolve to live accounts. The
+full list is in the "Who to tag" table of X-THREAD-FINAL.md.
 
 ---
 

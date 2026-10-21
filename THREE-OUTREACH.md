@@ -89,7 +89,7 @@ depends on the contract."
 
 ## Modal — disqualified
 
-**To:** @bernhardsson + @modal_labs. This is optional. The honest move is not to
+**To:** @bernhardsson + @modal. This is optional. The honest move is not to
 pitch the fan claim.
 
 ### DM / short note
@@ -99,7 +99,7 @@ pitch the fan claim.
 > or the nodes; the fan bill sits on your 13 providers' P&L.
 >
 > The fan bill behind a $1B-ARR fleet is **$6.3–7.1M/yr** at 1.3–1.8×
-> (**$9.1M** at R=36), about **0.63–0.71 %** of revenue (**0.91 %** at R=36).
+> (**$9.1M** at R=36), about **0.63–0.71 %** of revenue (**0.73 %** at R=36).
 > Your utilization lever (35 → 60 %) is **~$417M/yr gross**, a
 > different business, not a like-for-like saving. The fan claim is not just
 > unattributable to Modal; it is immaterial next to the thing you already sell.

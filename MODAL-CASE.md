@@ -2,16 +2,16 @@
 
 > Modal's $1B run rate implies roughly 48,000 active H100-equivalents. The fan
 > bill behind that fleet is **$6.3–7.1M/yr** at 1.3–1.8× — real, and
-> **0.63–0.71 % of revenue** (**$9.1M / 0.91 %** at R=36). Modal owns none of it. The
+> **0.45–0.53 % of revenue** (**$7.3M / 0.73 %** at R=36). Modal owns none of it. The
 > company is a platform on top of 13
 > capacity providers, not a fleet owner. The physics applies; the bill does not
 > the cleanest demonstration of why ownership is the first term.
 
 This is the fourth case in the project, and the third founder-led one. The
 first proved the claim on a 24,000-H100 fleet with no founder attached. The
-second pointed it at Lambda (qualified). The third pointed it at Together
-(a partner). This one points it at **Modal** and at the providers behind it, founder/CEO
-**@bernhardsson**, company **@modal_labs**.
+second pointed it at Lambda (the operator pays the meter). The third pointed it at Together
+(the meter is shared). This one points it at **Modal** and at the providers behind it, founder/CEO
+**@bernhardsson**, company **@modal**.
 
 The result is not a smaller win. It is a **different answer**: the fan claim does
 not route to Modal at all.
@@ -36,17 +36,17 @@ of the error is not known, so treat it as a scenario.
 |---|---:|
 | derived active fleet | **≈48,177 H100-equivalents (48,176 modeled)** |
 | nodes | **6,022** |
-| fan energy | **$5,412,388/yr** |
+| fan energy | **$3,623,912/yr** |
 | thermal fatigue | **$3,688,475/yr at R=36; $0.88–$1.69M at 1.3–1.8×** |
-| **fan bill, at the providers** | **$7,311,143/yr at R=36; $4.50–$5.31M at 1.3–1.8×** |
-| as % of ARR | **0.63–0.71 % at 1.3–1.8×; 0.91 % at R=36** |
-| capacity value of freed watts | $92,991,338/yr gross |
+| **fan bill, at the providers** | **$7,312,387/yr at R=36; $4.50–$5.31M at 1.3–1.8×** |
+| as % of ARR | **0.45–0.53 % at 1.3–1.8×; 0.73 % at R=36** |
+| capacity value of freed watts | $62,270,986/yr gross |
 | **Modal's direct saving** | **$0** |
 | **Modal's capacity value** | **$0** |
 | utilization lever, 35 % → 60 % | **$416,666,667/yr gross** |
 
-The fan bill is real, but it is only **0.63–0.71 % of ARR** at 1.3–1.8×
-(**0.91 %** at R=36). The utilization
+The fan bill is real, but it is only **0.45–0.53 % of ARR** at 1.3–1.8×
+(**0.73 %** at R=36). The utilization
 lever is a different business, not a like-for-like saving: it is gross revenue
 at list price, and it requires demand, not just packing. The comparison is a
 scale check, not a claim that one dollar of fan saving equals one dollar of
@@ -68,7 +68,7 @@ scale and reach parts of the filter:
 | air-cooled | its providers' H100/H200 nodes can be air-cooled; Modal does not control them |
 | bare metal | no; serverless containers on a multi-cloud capacity pool |
 | thousands of GPUs | ~48k derived from $1B ARR |
-| reachable | founder/CEO **@bernhardsson** + **@modal_labs** |
+| reachable | founder/CEO **@bernhardsson** + **@modal** |
 | public price | H100 **$3.95/GPU-hr**, H200 **$4.54/GPU-hr**, B200 **$6.25/GPU-hr** |
 | owns the node / BMC / power bill | **no / no / no** |
 
@@ -116,14 +116,14 @@ attribute the build-out quote to Modal.
 ## 3. The fleet behind the ARR
 
 The derived fleet scales linearly with ARR. The fan bill is the **R=36**
-scenario; at 1.3–1.8× it is 0.63–0.71 % of ARR:
+scenario; at 1.3–1.8× it is 0.45–0.53 % of ARR:
 
 | ARR | active GPUs | nodes | fan bill | % of ARR |
 |---:|---:|---:|---:|---:|
-| $0.25B | 12,044 | 1,505 | $2,274,460 | 0.91 % |
-| $0.50B | 24,088 | 3,011 | $4,550,431 | 0.91 % |
+| $0.25B | 12,044 | 1,505 | $2,274,460 | 0.73 % |
+| $0.50B | 24,088 | 3,011 | $4,550,431 | 0.73 % |
 | **$1.00B** | **48,177** | **6,022** | **$7,312,387** | **0.73 %** |
-| $2.00B | 96,353 | 12,044 | $18,201,725 | 0.91 % |
+| $2.00B | 96,353 | 12,044 | $18,201,725 | 0.73 % |
 
 Under R=36 the percentage is constant because both sides scale with ARR. That
 is the point: **the fan bill is a fixed fraction of revenue under this model**,
@@ -149,10 +149,10 @@ duty, $0.08/kWh, PUE 1.35 — the derived fleet's fan bill is:
 
 | item | value |
 |---|---:|
-| energy | **$5,412,388/yr** |
+| energy | **$3,623,912/yr** |
 | fatigue | **$3,688,475/yr** |
 | **total** | **$7,312,387/yr** |
-| capacity (gross) | **$92,991,338/yr** |
+| capacity (gross) | **$62,270,986/yr** |
 
 Across 13 providers, the average share is:
 
@@ -224,7 +224,7 @@ The three cases:
 
 | target | owns DC | owns nodes | controls BMC | pays power | verdict |
 |---|---|---|---|---|---|
-| Lambda | no (leases) | yes | yes* | yes* | **qualified** |
+| Lambda | no (leases) | yes | yes* | yes* | **the operator** |
 | Together | no | partial | yes* | partial | **operator or partner** |
 | Modal | no | no | no | no | **the node providers** |
 
@@ -245,7 +245,7 @@ Four things would change it:
    today; the "considering own facilities" quote is Neysa's, not Modal's.
 2. **Modal acquires a neocloud or signs a power-indexed lease** with BMC access
    and a share of the energy saving. Then `pays_power` becomes true and the
-   verdict moves to qualified.
+   the meter sits with the operator.
 3. **Modal requires fan telemetry from its 13 providers as a procurement term.**
    That gives it measurement, not capture. The saving still lands on the
    provider unless the contract passes it through.

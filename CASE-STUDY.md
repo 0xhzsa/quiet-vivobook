@@ -57,13 +57,13 @@ watt removed at the server also removes its share of cooling overhead):
 |---|---|---|---|---|
 | 1U CPU node | 60 W | 80 % → 35 % | 55.0 | $60.68 |
 | 4-GPU node | 400 W | 90 % → 35 % | 376.5 | $415.54 |
-| 8-GPU dense node | 1,000 W | 95 % → 52.9 % | 635.9 | $701.83 |
+| 8-GPU dense node | 1,000 W | 95 % → 52.9 % | 635.9 | $702.08 |
 
 The arithmetic for the 8-GPU row:
 
 ```
 950 W × 8,760 h / 1,000 = 8,322 kWh/yr
-7,065 × $0.09 × 1.4     = $701.83/yr
+7,065 × $0.09 × 1.4     = $702.08/yr
 ```
 
 **Every 1,000 eight-GPU nodes is ~$1.05M/yr in fan power alone** under the
@@ -74,7 +74,7 @@ cut, not 95 %; at 1 kW that is 875 W, or **$965.79/node/yr** and **$0.97M per
 
 ---
 
-## 3. Thermal fatigue: the leg that is conditional
+## 3. Thermal fatigue: the leg that depends on assumptions
 
 A temperature trace is counted with rainflow (ASTM E1049-85). Damage per cycle
 is Coffin-Manson with a Norris-Landzberg mean-temperature correction:

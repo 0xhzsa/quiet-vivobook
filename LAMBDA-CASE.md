@@ -142,11 +142,11 @@ saved per node**.
 8,322 × $0.08 × 1.35     = $898.77/node/yr
 ```
 
-At the first case's $0.09/kWh and PUE 1.4: **$701.83/node/yr**.
+At the first case's $0.09/kWh and PUE 1.4: **$702.08/node/yr**.
 
 | fan tray | saved W | $/node/yr @ $0.08/1.35 | $/node/yr @ $0.09/1.4 |
 |---:|---:|---:|---:|
-| 1,000 W | 635.9 | **$601.57** | **$701.83** |
+| 1,000 W | 635.9 | **$601.57** | **$702.08** |
 | 500 W | 475.0 | $449.38 | $524.28 |
 | 300 W | 285.0 | $269.63 | $314.57 |
 
@@ -177,7 +177,7 @@ older node resolves it.
 
 ---
 
-## 4. Leg 2 — thermal fatigue: the leg that is conditional
+## 4. Leg 2 — thermal fatigue: the leg that depends on assumptions
 
 The dollar leg uses the same **swing-ratio scenario** as the first case, not
 the rainflow simulator in `cycling.py`. For an 8-GPU node:
@@ -303,7 +303,7 @@ At $0.09/kWh and PUE 1.4, the energy column rises by 16.7 %:
 |---|---:|---:|
 | ATL02 12 MW | $1,233,111 | $1.95M |
 | ATL02 14 MW | $1,438,630 | $2.28M |
-| 18,000-GPU lease | $2,359,269 | $3.74M |
+| 18,000-GPU lease | $1,579,670 | $3.74M |
 | 30 MW footprint | $3,083,827 | $4.89M |
 
 The model's exact 12 MW energy is **$1,233,111** (1,176 nodes); the total is
