@@ -1,0 +1,114 @@
+{
+    "original_scheme":  "1c34d62b-115d-4e7b-abb7-f19a12b8159e",
+    "balanced_guid":  "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "quiet_guid":  "1c34d62b-115d-4e7b-abb7-f19a12b8159e",
+    "threads":  8,
+    "load_sec":  60,
+    "steady_sec":  40,
+    "between_sec":  45,
+    "warmup_sec":  30,
+    "ac_online":  true,
+    "battery_charge_pct":  96,
+    "warmup":  {
+                   "label":  "warmup",
+                   "scheme":  "balanced",
+                   "seconds":  30.3,
+                   "steady_samples":  15,
+                   "iter_per_s":  1411735.2,
+                   "invalid":  null
+               },
+    "phases":  [
+                   {
+                       "label":  "b1-balanced",
+                       "scheme":  "balanced",
+                       "seconds":  60.3,
+                       "steady_samples":  21,
+                       "iter_per_s":  1507200.7,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b1-quiet",
+                       "scheme":  "quiet",
+                       "seconds":  60.3,
+                       "steady_samples":  21,
+                       "iter_per_s":  1409433.1,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b2-quiet",
+                       "scheme":  "quiet",
+                       "seconds":  66.7,
+                       "steady_samples":  10,
+                       "iter_per_s":  1050709.8,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b2-balanced",
+                       "scheme":  "balanced",
+                       "seconds":  63.9,
+                       "steady_samples":  5,
+                       "iter_per_s":  1059590.8,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b3-balanced",
+                       "scheme":  "balanced",
+                       "seconds":  71.3,
+                       "steady_samples":  6,
+                       "iter_per_s":  1207593.4,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b3-quiet",
+                       "scheme":  "quiet",
+                       "seconds":  65.5,
+                       "steady_samples":  6,
+                       "iter_per_s":  1102129.3,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b4-quiet",
+                       "scheme":  "quiet",
+                       "seconds":  72.3,
+                       "steady_samples":  7,
+                       "iter_per_s":  1088648,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "b4-balanced",
+                       "scheme":  "balanced",
+                       "seconds":  74.3,
+                       "steady_samples":  6,
+                       "iter_per_s":  1231732,
+                       "invalid":  null
+                   }
+               ],
+    "ratios":  [
+                   {
+                       "block":  1,
+                       "order":  "balanced,quiet",
+                       "quiet_over_balanced":  0.9351
+                   },
+                   {
+                       "block":  2,
+                       "order":  "quiet,balanced",
+                       "quiet_over_balanced":  0.9916
+                   },
+                   {
+                       "block":  3,
+                       "order":  "balanced,quiet",
+                       "quiet_over_balanced":  0.9127
+                   },
+                   {
+                       "block":  4,
+                       "order":  "quiet,balanced",
+                       "quiet_over_balanced":  0.8838
+                   }
+               ],
+    "throughput_cost_pct":  6.92,
+    "aborted":  null,
+    "ratio_mean":  0.9308,
+    "ratio_min":  0.8838,
+    "ratio_max":  0.9916,
+    "finished":  "2026-10-21T14:49:22.1677900+00:00"
+}

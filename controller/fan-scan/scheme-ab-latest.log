@@ -1,0 +1,17 @@
+14:32:44.007 governor pause flag: C:\Users\stagh\quiet-vivobook\public\controller\paused.flag (created=True)
+14:33:21.444 warmup: scheme=balanced samples=15 steady=15 iter/s=1411735.2 invalid=
+14:35:08.959 b1-balanced: scheme=balanced samples=30 steady=21 iter/s=1507200.7 invalid=
+14:36:56.464 b1-quiet: scheme=quiet samples=30 steady=21 iter/s=1409433.1 invalid=
+14:37:42.596 block 1: quiet/balanced work = 0.9351
+14:38:50.390 b2-quiet: scheme=quiet samples=13 steady=10 iter/s=1050709.8 invalid=
+14:40:42.695 b2-balanced: scheme=balanced samples=7 steady=5 iter/s=1059590.8 invalid=
+14:41:28.797 block 2: quiet/balanced work = 0.9916
+14:42:41.129 b3-balanced: scheme=balanced samples=9 steady=6 iter/s=1207593.4 invalid=
+14:44:33.876 b3-quiet: scheme=quiet samples=9 steady=6 iter/s=1102129.3 invalid=
+14:45:19.984 block 3: quiet/balanced work = 0.9127
+14:46:33.367 b4-quiet: scheme=quiet samples=11 steady=7 iter/s=1088648 invalid=
+14:48:34.852 b4-balanced: scheme=balanced samples=8 steady=6 iter/s=1231732 invalid=
+14:49:20.944 block 4: quiet/balanced work = 0.8838
+14:49:20.989 summary: quiet keeps 93.08% of balanced work; cost 6.92%
+14:49:22.105 governor pause flag removed
+14:49:22.197 done
