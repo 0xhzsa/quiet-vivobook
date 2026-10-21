@@ -152,7 +152,8 @@ MODAL-CASE.md        case 4: Modal, disqualified (no fans of its own)
 LAMBDA-OUTREACH.md   draft X posts for @stephenbalaban + @LambdaAPI (not posted)
 THREE-OUTREACH.md    drafts for all three founders (not posted)
 TARGETS.md           who this is for, and why liquid-cooled fleets are excluded
-X-THREAD.md          the public thread, with the ask
+X-THREAD-V2.md       the current public thread: laptop first, then the fleets
+X-THREAD.md          earlier numbers-first thread, kept for comparison
 code/case.py         both legs, break-even, sensitivity, falsification
 code/cycling.py      rainflow / Coffin-Manson / Norris-Landzberg / Miner
 code/fleet_model.py  fan affinity model, standalone
