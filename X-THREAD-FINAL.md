@@ -152,6 +152,30 @@ Every handle below was checked against x.com and resolves to a live account.
 | **@VoltagePark** | Voltage Park | owns air-cooled capacity, controls its own BMCs |
 | **@WHITEFIBER** | WhiteFiber | a known Modal capacity customer |
 
+## What each tagged party actually gets
+
+Per-node economics, at the throughput-safe duty and $0.08/kWh, PUE 1.35:
+**$602/node/yr** of fan power ($702 at $0.09/1.4), and
+**27.6 % less fan power again** on top of that from closed-loop control
+instead of a fixed duty.
+
+| party | direct | what else moves | what they have to do |
+|---|---|---|---|
+| **@stephenbalaban / @LambdaAPI** | **$707,692/yr** fan bill at ATL02, **$1,427,992/yr** with the fatigue leg | **0.75 MW** of facility power freed - 73 extra nodes (584 GPUs) worth of headroom; **$12,247,321/yr** of revenue capacity at list price | BMC access at Atlanta, one A/B/A run, one BMC fan trace |
+| **@vipulved / @togethercompute** | **$601,779/yr** on the 8k air-cooled fleet, **$1,214,279/yr** with the fatigue leg | **0.64 MW** freed; **62 nodes (496 GPUs)** of extra capacity at list price | confirm whether the meter is theirs or **@hypertec**'s - that one question decides who the $1.21M belongs to |
+| **@hypertec** | up to the same **$601,779/yr** if they hold the meter on the H100/H200 fleet | capacity that a fan-controlled node can serve at lower power cost | confirm ownership of the fleet they co-built |
+| **@bernhardsson / @modal** | **$0 to Modal** - the fan bill is at its 13 node providers | **7,312,387/yr** at the providers, **$562,491/yr each**; Modal's own lever is utilisation, **$416,666,667/yr** gross at 35 %->60 % | a fan-telemetry term in the provider contracts; a utilisation lever that is not a power lever |
+| **@EdgeConneX** | the Atlanta row's load drops, which is a lease-pricing argument | lower inlet heat density in a row they lease out | one BMC trace from the tenant |
+| **@0xAlcibiades** | quiet-lab's 120 W -> 15 W now has a downstream node model attached to it | the measurement keeps its value; the physics is credited, not re-derived | nothing |
+| **@neuralkian / @freeCodeCamp** | the cooling chapter gets a worked example with a measured null result and a full node model | the PUE and cooling framework applied to a real control problem, with the code | nothing |
+| **@CrusoeAI / @VoltagePark / @WHITEFIBER** | the same physics on air-cooled capacity they own and whose BMCs they control | the method, the harness and the band are open source | one BMC trace |
+| **every reader** | the method, the harness, the audit and the band | no one has to trust the author: `SELF-REVIEW.md` publishes the eleven defects found in this work, and §9 of HOW-IT-WORKS lists what would change the conclusion | run the audit |
+
+The measured reason this is worth a fleet's time: on a laptop, moving the
+FAN CURVE cost nothing measurable and moving the CPU POWER LIMIT cost 6.92 %
+of the work. On a GPU node the GPU is the work and the fan is what limits it,
+so the fan is the cheap lever. That ordering was measured, not assumed.
+
 ## What to send with the thread
 
 - `docs/HOW-IT-WORKS.md` - **the full account**: mechanism, derivations, per-party economics, falsification conditions
