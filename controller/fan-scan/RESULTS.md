@@ -67,3 +67,77 @@ That means:
 
 None of that changes the actuator or the controller. It changes what can be
 claimed about their performance cost — which is currently: **not measured**.
+
+## `mode-20261022-025525` - the run that works
+
+A/B/A/B/A/B: thermal mode 0 (balanced) and 1 (silent), six phases of 100 s
+at 12 threads, 50 s steady window, on AC, with a 66 C cooldown gate before
+every phase. 317 samples. Every phase valid; every mode read-back matched.
+
+| phase | mode | pkg W | die C | work/s | n | AC |
+|---|---|---|---|---|---|---|
+| p0-m0 | 0 | 16.48 | 73.3 | 1,086,729 | 23 | ac |
+| p1-m1 | 1 | 12.19 | 69.6 | 1,046,800 | 24 | ac |
+| p2-m0 | 0 | 16.13 | 71.6 | 1,067,426 | 22 | ac |
+| p3-m1 | 1 | 15.29 | 75.1 | 1,057,743 | 23 | ac |
+| p4-m0 | 0 | 11.74 | 69.5 | 1,061,856 | 21 | ac |
+| p5-m1 | 1 | 13.60 | 71.6 | 1,058,289 | 22 | ac |
+
+Paired analysis (`analyze-mode-run.py`, output committed as
+`analysis-20261022-025525.txt`):
+
+| quantity | mode 0 | mode 1 | paired mean | t (df 2) | verdict |
+|---|---|---|---|---|---|
+| package power | 14.78 W | 13.69 W | -1.09 W | -0.61 | not resolved |
+| work rate | 1,072,004 | 1,054,277 | -17,726/s | -1.58 | not resolved |
+| die temperature | 71.5 C | 72.1 C | +0.61 C | +0.28 | not resolved |
+
+**What this proves.** Moving the ASUS thermal policy from balanced to silent
+changes nothing measurable on this machine at this load. The between-replicate
+standard deviation of package power is 3.08 W on a 14 W mean, so the noise
+floor is larger than any plausible fan effect here.
+
+**Why that is the useful result, not a null one.** On a laptop the fan is
+not the constraint: 12 threads never push the machine past 75 C in a way the
+fan curve can change. So the fan curve is free - which is exactly the
+argument for why it is the right lever on a GPU node, where the GPU is the
+work and the fan is what limits it. The measurement on this machine says the
+fan curve costs nothing here, and the power scheme costs 6.92 % of the work
+(`scheme-ab-latest-summary.json`).
+
+**What it does not prove.** Nothing about a server. The die never got hot
+enough here for the fan to be the binding constraint, so this run says
+nothing about what a fan control costs on a node running a 700 W GPU. That
+is what the 30-day BMC protocol in `docs/REPRODUCE.md` is for.
+
+**The three defects that had to be fixed to get this run.** The v3 harness
+was committed but had never executed. Running it exposed:
+
+1. The sampler was starved. The load ran at `ThreadPriority.Highest` with
+   the process at `High`, and the ASUS ACPI WMI provider - which runs at
+   Normal - stopped being scheduled. The per-sample mode read blocked for
+   minutes. Fixed: load at `AboveNormal`, process at `Normal`, and the mode
+   is read back once per phase instead of once per sample.
+2. The first MSR read costs about 28 seconds. That is PawnIO
+   initialising, and it was happening inside the first measured phase, so
+   the steady window could not fill. Fixed: the driver is warmed before the
+   clock starts, and the cost is logged.
+3. The warmup was shorter than the steady window, so the window could never
+   fill. Fixed: `SteadySec` is clamped to the phase length, and a phase that
+   cannot fill its window is invalidated rather than reported.
+
+**The defect the run itself exposed.** The first A/B/A/B lost the mains
+part-way through and the last phase ran on battery, where Windows caps the
+CPU at a lower thermal envelope: package power decayed 11.7 -> 8.0 W with
+the die at 58.1 +/- 0.3 C. That phase would have been silently averaged
+into the result. The harness now checks the AC state before and during
+every phase and voids the run if the mains is lost, and the analysis tool
+refuses to report a run with a non-AC phase.
+
+**A fourth thing that did not work.** `battery-fan-power.ps1` reads the
+battery discharge rate, which on this machine is the only whole-system power
+meter available. It works - but the meter is too noisy to resolve a 1 W
+fan difference against a 3 W noise floor, and on battery the CPU power
+limit changes underneath the measurement. It is kept as a script and
+reported as a null result, not as a fan measurement.
+

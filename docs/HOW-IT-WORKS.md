@@ -23,8 +23,10 @@ number in this file drifts from the code.
   derived rather than assumed.
 - A calibrated fan power law (`code/fanlaw.py`): the power of a fan at a
   given duty, fitted to a real measurement, carrying its own uncertainty.
-- A laptop measurement harness (`controller/fan-scan/scheme-ab.ps1`): a clean
-  A/B on real hardware, with the work counted, not guessed.
+- Two laptop measurement harnesses that actually run:
+  `controller/fan-scan/scheme-ab.ps1` (power scheme A/B) and
+  `controller/fan-scan/mode-effect.ps1` (thermal mode A/B/A/B/A/B), plus
+  `controller/fan-scan/analyze-mode-run.py`, which decides what a run means.
 - An independent auditor (`code/audit.py`): a second implementation in
   `Decimal` that can disagree, plus 12 module selftests.
 
@@ -39,6 +41,54 @@ number in this file drifts from the code.
 - The thermal resistances, the 1 kW fan tray, the throttle thresholds and the
   75 °C full-boost point are all **assumptions**. They are listed in
   §4 and their effect is quantified.
+
+---
+
+## 1a. The measured result, and why it is the useful one
+
+The laptop has two independent actuators, and the experiment separates them.
+
+**The CPU power limit** (`controller/fan-scan/scheme-ab.ps1`): Balanced vs
+Quiet power scheme, governor paused, 4 paired blocks, 60 s phases, AC only,
+work counted by an in-process counter. Quiet keeps **93.08 %** of the work.
+Cost: **6.92 %**, per-block range 88.4-99.2 %.
+
+**The fan curve** (`controller/fan-scan/mode-effect.ps1`): thermal policy
+mode 0 (balanced) vs 1 (silent), A/B/A/B/A/B, six phases of 100 s at 12
+threads, 50 s steady window, 66 °C cooldown gate, 317 samples, all on AC.
+Paired analysis:
+
+| quantity | mode 0 | mode 1 | paired mean | t (df 2) | verdict |
+|---|---|---|---|---|---|
+| package power | 14.78 W | 13.69 W | -1.09 W | -0.61 | not resolved |
+| work rate | 1,072,004 | 1,054,277 | -17,726/s | -1.58 | not resolved |
+| die temperature | 71.5 °C | 72.1 °C | +0.61 °C | +0.28 | not resolved |
+
+**The fan curve costs nothing measurable here, and the power limit costs
+6.92 % of the work.** The between-replicate standard deviation of package
+power is 3.08 W on a 14 W mean: the noise floor is larger than any fan
+effect this machine can produce at this load.
+
+That is not a null result, it is the argument. On a laptop the fan is not the
+constraint - 12 threads never push the machine into a regime where the fan
+curve changes what gets done. On a GPU node the GPU is the work and the fan
+is what limits it, so the fan becomes a real lever with a real thermal cost.
+**The measurement on the laptop says the fan curve is free, which is exactly
+why it is the right thing to turn on a node.**
+
+It also explains the original confounded A-B-A run: there was no effect to
+measure, and what looked like drift was thermal.
+
+**What this does not prove.** Nothing about a server. The die never got hot
+enough here for the fan to be the binding constraint.
+
+**A thing that did not work, and is reported as a null result.** The battery
+discharge rate is the only whole-system power meter this machine has, so
+`controller/fan-scan/battery-fan-power.ps1` uses it to try to measure fan
+power directly. It works - and it is not usable: the meter is too noisy to
+resolve a 1 W difference against a 3 W noise floor, and on battery the CPU
+power limit changes underneath the measurement. The script is kept. The null
+result is stated. It is not dressed up as a fan measurement.
 
 ---
 
