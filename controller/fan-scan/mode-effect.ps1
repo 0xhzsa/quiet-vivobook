@@ -283,6 +283,29 @@ $script:clock = [Diagnostics.Stopwatch]::StartNew()
 $script:lastEnergy = $null
 $script:lastT = $null
 
+function Get-AcState {
+  # Whether the machine is on mains. A laptop on battery is power-limited by
+  # Windows at a lower thermal envelope, and the package power, the clock and
+  # the fan curve all change. A phase that runs off mains is not comparable
+  # with one that ran on it, so the state is checked and recorded per phase.
+  try {
+    $b = Get-CimInstance Win32_Battery -ErrorAction Stop | Select-Object -First 1
+    if (-not $b) { return 'no-battery' }
+    switch ($b.BatteryStatus) {
+      2 { return 'ac' }        # AC, charging or full
+      6 { return 'ac' }        # AC, charging
+      7 { return 'ac' }        # AC, discharging but plugged in
+      8 { return 'ac' }        # AC, not charging
+      1 { return 'battery' }
+      3 { return 'battery' }
+      4 { return 'battery' }
+      5 { return 'battery' }
+      6 { return 'ac' }
+      default { return 'unknown' }
+    }
+  } catch { return 'unknown' }
+}
+
 function Wait-Cooldown {
   param([double]$TargetC, [int]$MaxSec)
   $started = Get-Date
@@ -403,6 +426,7 @@ $summary = [ordered]@{
   baseline_raw = $baselineRaw
   zone_temp_c = $zoneTemp
   driver_warm_ms = $warmMs
+  ac_state = (Get-AcState)
   logical_processors = $cores
   thread_count = $null
   load_sec = $LoadSec
@@ -449,6 +473,10 @@ try {
   Log "chosen thread count: $threads"
 
   # ---- measurement --------------------------------------------------------
+  $acState = Get-AcState
+  if ($acState -ne 'ac') { throw "machine is not on AC (state=$acState); a battery-powered phase is not comparable and the run is void" }
+  Log "AC state at start of measurement: $acState"
+
   for ($i = 0; $i -lt $modeList.Count; $i++) {
     $m = [int]$modeList[$i]
     $label = "p$i-m$m"
@@ -464,13 +492,19 @@ try {
     Log ('cooldown before {0}: ok={1} t={2}C sec={3}' -f $label, $cd.ok, $cd.t, $cd.sec)
     if (-not $cd.ok) { throw "cooldown to $CooldownTargetC C failed before $label (last $($cd.t) C)" }
 
+    $acBefore = Get-AcState
+    if ($acBefore -ne 'ac') { throw "AC was lost before $label (state=$acBefore); the run is void" }
+
     [LoadGen2]::Start($threads)
     $res = Invoke-Phase -Seconds $LoadSec -Mode $m -Label $label
     if (-not [LoadGen2]::WaitStop(5000)) { throw 'load threads did not exit' }
     $modeAfter = [int]((Get-Dsts $DeviceId) -band 0xFFFF)
+    $acAfter = Get-AcState
+    $res['ac_state'] = $acBefore
     $summary.phases += $res
-    Log ('{0}: steady t={1}C w={2}W iter/s={3} start={4}C peak={5}C n={6} mode={7}->{8} invalid={9}' -f `
-        $label, $res.steady_t, $res.steady_w, $res.steady_iter, $res.start_t, $res.peak_t, $res.samples, $modeBefore, $modeAfter, $res.invalid)
+    Log ('{0}: steady t={1}C w={2}W iter/s={3} start={4}C peak={5}C n={6} mode={7}->{8} ac={9} invalid={10}' -f `
+        $label, $res.steady_t, $res.steady_w, $res.steady_iter, $res.start_t, $res.peak_t, $res.samples, $modeBefore, $modeAfter, $acAfter, $res.invalid)
+    if ($acAfter -ne 'ac') { throw "AC was lost during $label (state=$acAfter); the run is void" }
     if ($modeAfter -ne $m) { throw "mode drifted during ${label}: $modeBefore -> $modeAfter" }
     if ($res.invalid) { throw "phase $label invalid: $($res.invalid)" }
   }
