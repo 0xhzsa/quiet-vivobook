@@ -15,7 +15,10 @@ controller/paused.flag
 controller/fan-scan/run-*/
 controller/fan-scan/devs-*/
 controller/fan-scan/mode-*/
+controller/fan-scan/mode-v*/
+controller/fan-scan/dbg-*/
 controller/fan-scan/setmode-*/
+controller/fan-scan/batteryfan-*/
 !controller/fan-scan/devs-20261020-155011/
 !controller/fan-scan/mode-20261020-160330/
 !controller/fan-scan/mode-20261020-155110/
