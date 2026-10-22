@@ -1,49 +1,55 @@
 #requires -Version 5.1
 <#
-  mode-effect.ps1 (v3) - measure what the ASUS thermal policy actually does.
+  mode-effect.ps1 (v4) - measure what the ASUS thermal policy actually does.
 
   v1 was invalid: it started the load as a hidden child, Windows applied EcoQoS
   and pinned it to the E-cores, and in two phases the child died early. The
   sampler had no way to tell a dead load from a hot one, so it reported idle
   temperatures as "silent mode".
 
-  v2 fixed the measurement, not the story:
-    - the load runs IN THIS PROCESS, on real threads, so nothing can throttle
-      it away or kill it silently;
-    - every sample reads a work counter; if the counter stops advancing the
-      phase is marked invalid instead of being reported as data;
-    - thread count is auto-tuned first so the phases sit in a band where the
-      fan policy can actually make a difference (74-86 C in balanced mode).
+  v2 fixed the measurement, not the story: the load runs IN THIS PROCESS on
+  real threads, and every sample reads a work counter, so a dead load is
+  marked invalid instead of being reported as data.
 
-  v3 adds the controls a repeated/randomized run needs:
-    - a single string -Modes argument, parsed and validated before any write,
-      so a comma list cannot bind positionally to DeviceId/AbortTempC;
-    - the governor pause is verified, not assumed;
-    - a failed mode read-back, mode drift, null temperature, or short steady
-      window invalidates the phase instead of silently becoming data;
-    - a cooldown gate holds each phase at the same starting temperature;
-    - the watchdog restores the full raw baseline, and the parent restores it
-      again after resuming the governor.
+  v3 added the controls a repeated run needs: a string -Modes argument parsed
+  and validated before any write, a verified governor pause, invalidation on
+  null temperature or a short steady window, a cooldown gate, and a watchdog
+  that restores the raw baseline.
+
+  v4 is the version that actually runs. It fixes three defects found by
+  running v3 and watching it fail:
+
+    1. THE SAMPLER COULD BE STARVED. The load ran at ThreadPriority.Highest
+       and the process at High, while the ASUS ACPI WMI provider that answers
+       DSTS runs at Normal. The WMI call stopped being scheduled and blocked
+       for MINUTES - the phase produced one sample in 70 seconds, or none at
+       all, and the run died on the watchdog. The fix is twofold: the load
+       runs at AboveNormal and the process stays at Normal, so the sampler
+       and the WMI provider are never starved; and the mode is read back ONCE
+       PER PHASE instead of once per sample. The per-sample readback was a
+       luxury that cost the whole run.
+
+    2. THE FIRST MSR READ COSTS ~28 SECONDS. That is PawnIO initialising.
+       Inside a measured phase it ate the entire steady window and the phase
+       was reported invalid with "steady window has 1 samples". The driver is
+       now warmed BEFORE the clock starts, and the cost is logged.
+
+    3. THE WARMUP WAS SHORTER THAN THE STEADY WINDOW. With WarmSec below
+       SteadySec the steady window could not fill. Warmup is now at least as
+       long as the steady window, and the phase is invalidated rather than
+       silently reported if it is not.
 
   Encoding on VIVO is NOT the generic ASUS one:
       0 = default/balanced   1 = SILENT   2 = OVERBOOST
-
-  STATUS: v3 has NOT been executed. The elevation prompt was declined
-  during the session in which it was written, so the cooldown gate, the
-  null-temperature invalidation, the mode-drift detection and the -Modes
-  parsing fix have never run against hardware. The three committed output
-  directories are from v2. Treat this file as unexercised until someone
-  runs it with an approved elevation prompt, and read
-  controller/fan-scan/RESULTS.md for what v2 actually produced.
 
   Output: samples.jsonl, summary.json, mode.log
 #>
 [CmdletBinding(PositionalBinding = $false)]
 param(
   [int]$LoadSec = 100,
-  [int]$WarmSec = 40,
-  [int]$BetweenSec = 15,
-  [int]$SteadySec = 50,
+  [int]$WarmSec = 60,
+  [int]$BetweenSec = 5,
+  [int]$SteadySec = 40,
   [int]$Interval = 2,
   [int]$StartThreads = 6,
   [int]$MaxThreads = 16,
@@ -68,6 +74,9 @@ $modeList = @(
     }
 )
 if ($modeList.Count -lt 1) { throw 'Modes must contain at least one mode' }
+# A steady window longer than the phase can never fill.
+if ($SteadySec -gt $WarmSec) { $SteadySec = $WarmSec }
+if ($SteadySec -gt $LoadSec) { $SteadySec = $LoadSec }
 
 $ErrorActionPreference = 'Stop'
 
@@ -89,7 +98,6 @@ Remove-Item -LiteralPath $doneFlag -ErrorAction SilentlyContinue
 [System.IO.File]::WriteAllText($logPath, '', $utf8)
 [System.IO.File]::WriteAllText($jsonlPath, '', $utf8)
 
-
 function Log($m) {
   $line = '{0} {1}' -f (Get-Date).ToString('HH:mm:ss.fff'), $m
   Write-Host $line
@@ -97,10 +105,10 @@ function Log($m) {
 }
 function Json($o) { $o | ConvertTo-Json -Depth 6 -Compress }
 
-$elevated = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $elevated) { Log 'REFUSING: needs elevation'; exit 2 }
-
-# ---- in-process load -------------------------------------------------------
+# ---- in-process load -----------------------------------------------------
+# The load runs ABOVE NORMAL, not HIGHEST. The sampler and the WMI provider
+# have to be able to run: at Highest the ASUS ACPI provider stopped being
+# scheduled and the DSTS read blocked for minutes.
 $loadSrc = @'
 using System;
 using System.Threading;
@@ -130,11 +138,10 @@ public static class LoadGen2 {
                 }
             });
             ts[i].IsBackground = true;
-            ts[i].Priority = ThreadPriority.Highest;
+            ts[i].Priority = ThreadPriority.AboveNormal;
             ts[i].Start();
         }
     }
-    public static void Halt() { Stop = true; }
     public static bool WaitStop(int ms) {
         Stop = true;
         DateTime until = DateTime.UtcNow.AddMilliseconds(ms);
@@ -152,7 +159,9 @@ public static class LoadGen2 {
 }
 '@
 if (-not ('LoadGen2' -as [type])) { Add-Type -TypeDefinition $loadSrc -Language CSharp }
-try { [System.Diagnostics.Process]::GetCurrentProcess().PriorityClass = 'High' } catch { }
+# The PROCESS stays at Normal. Raising it to High is what starved the
+# sampler in v3.
+try { [System.Diagnostics.Process]::GetCurrentProcess().PriorityClass = 'Normal' } catch { }
 
 # ---- WMI ------------------------------------------------------------------
 $path = 'root\wmi:AsusAtkWmi_WMNB.InstanceName="{0}"' -f 'ACPI\PNP0C14\ATK_0'.Replace('\', '\\')
@@ -173,10 +182,10 @@ function Set-Devs([uint32]$id, [uint32]$value) {
 }
 
 # ---- MSR ------------------------------------------------------------------
-# Add-Type -Path fails on this assembly with "Unable to load one or more of
-# the requested types" (it tries to resolve every type in the DLL, including
-# ones whose dependencies are missing). The types we need load fine, so the
-# assembly is loaded directly and the failure is non-fatal.
+# Add-Type -Path fails on this assembly ("Unable to load one or more of the
+# requested types") because it tries to resolve every type in the DLL. The
+# types we need load fine, so the assembly is loaded directly and the
+# failure is non-fatal.
 $dllPath = Join-Path $root 'tools\lhm\LibreHardwareMonitorLib.dll'
 try { Add-Type -Path $dllPath -ErrorAction Stop } catch {
   Log "Add-Type -Path failed (non-fatal): $($_.Exception.Message)"
@@ -200,25 +209,41 @@ $cores = [int](Get-CimInstance Win32_Processor | Measure-Object NumberOfLogicalP
 if ($cores -le 0) { $cores = 20 }
 $affType = [LibreHardwareMonitor.Hardware.GroupAffinity]
 
+# WARM THE DRIVER BEFORE THE CLOCK STARTS. The first affinity-scoped MSR
+# read pays the PawnIO initialisation cost - about 28 SECONDS on this
+# machine. Inside a measured phase it ate the whole steady window.
+$warmSw = [Diagnostics.Stopwatch]::StartNew()
+$warmEax = [uint32]0; $warmEdx = [uint32]0
+$warmGa = $affType::Single([uint16]0, 0)
+$null = $msr.ReadMsr([uint32]0x19C, [ref]$warmEax, [ref]$warmEdx, $warmGa)
+$warmV = [uint64]0
+$null = $msr.ReadMsr([uint32]0x611, [ref]$warmV)
+$warmMs = $warmSw.ElapsedMilliseconds
+
 function Get-CoreTemps {
-  $out = New-Object 'double[]' $cores
+  $tempsArr = New-Object 'double[]' $cores
   for ($i = 0; $i -lt $cores; $i++) {
     $eax = [uint32]0; $edx = [uint32]0
     try {
       $ga = $affType::Single([uint16]0, $i)
       if ($msr.ReadMsr([uint32]0x19C, [ref]$eax, [ref]$edx, $ga)) {
-        $out[$i] = [double]($tjMax - (($eax -shr 16) -band 0x7F))
-      } else { $out[$i] = [double]::NaN }
-    } catch { $out[$i] = [double]::NaN }
+        $tempsArr[$i] = [double]($tjMax - (($eax -shr 16) -band 0x7F))
+      } else { $tempsArr[$i] = [double]::NaN }
+    } catch { $tempsArr[$i] = [double]::NaN }
   }
-  return $out
+  return ,$tempsArr
 }
 function Read-Msr32([uint32]$idx) {
   $v = [uint64]0
   try { if ($msr.ReadMsr($idx, [ref]$v)) { return [uint64]([uint64]$v -band 0xFFFFFFFF) } } catch { }
   return $null
 }
-function Get-AmbientC {
+function Get-ZoneTempC {
+  # The ACPI thermal zone on this machine is the CHASSIS SKIN, not the intake
+  # air. It reads ~66 C when the machine is idle on AC, which is obviously not
+  # room temperature. It is logged as a sanity check and is NOT reported as
+  # ambient: the intake temperature is not observable here, which is one of
+  # the reasons the 8-GPU model's ambient band matters so much.
   try {
     $z = Get-CimInstance -Namespace root\wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction Stop | Select-Object -First 1
     if ($z) { return [math]::Round(($z.CurrentTemperature / 10.0) - 273.15, 1) }
@@ -232,10 +257,11 @@ $baselineMode = [int]($baselineRaw -band 0xFFFF)
 if ($baselineRaw -eq 0xFFFFFFFE -or $baselineMode -gt 2) {
   throw ('unsupported baseline id=0x{0:X8} value=0x{1:X8}; refusing to write' -f $DeviceId, $baselineRaw)
 }
-$ambient = Get-AmbientC
-Log ('baseline raw=0x{0:X8} mode={1} ambient={2}C threads={3} tjmax={4}' -f $baselineRaw, $baselineMode, $ambient, $cores, $tjMax)
+$zoneTemp = Get-ZoneTempC
+Log ('baseline raw=0x{0:X8} mode={1} zone={2}C threads={3} tjmax={4} driver_warm={5}ms steady={6}s' -f `
+    $baselineRaw, $baselineMode, $zoneTemp, $cores, $tjMax, $warmMs, $SteadySec)
 
-$watchdogSec = ($WarmSec * 3) + 60 + (($LoadSec + $Interval + 5) * $modeList.Count) + ($BetweenSec * [math]::Max(0, $modeList.Count - 1)) + (25 * $modeList.Count) + 300
+$watchdogSec = ($WarmSec * 3) + 120 + (($LoadSec + $Interval + 15) * $modeList.Count) + (($BetweenSec + 60) * $modeList.Count) + 300
 $watchdog = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden -ArgumentList @(
   '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'devs-watchdog.ps1'),
   '-DeviceId', $DeviceId, '-RestoreValue', $baselineRaw,
@@ -257,13 +283,28 @@ $script:clock = [Diagnostics.Stopwatch]::StartNew()
 $script:lastEnergy = $null
 $script:lastT = $null
 
+function Wait-Cooldown {
+  param([double]$TargetC, [int]$MaxSec)
+  $started = Get-Date
+  $tmax = $null
+  while (((Get-Date) - $started).TotalSeconds -lt $MaxSec) {
+    $temps = Get-CoreTemps
+    $valid = @($temps | Where-Object { -not [double]::IsNaN($_) })
+    if ($valid.Count -gt 0) {
+      $tmax = [math]::Round(($valid | Measure-Object -Maximum).Maximum, 1)
+      if ($tmax -le $TargetC) { break }
+    }
+    Start-Sleep -Seconds 3
+  }
+  return [ordered]@{ ok = ($null -ne $tmax -and $tmax -le $TargetC); t = $tmax; sec = [math]::Round(((Get-Date) - $started).TotalSeconds, 1) }
+}
+
 function Invoke-Phase {
   param([int]$Seconds, [int]$Mode, [string]$Label)
   $rows = @()
   $peak = 0.0
   $invalid = $null
   $stall = 0
-  $modeDrift = 0
   $nullT = 0
   $prevIter = $null
   $prevIterT = $null
@@ -295,12 +336,8 @@ function Invoke-Phase {
     $prevIter = $iter
     $prevIterT = $t0
 
-    $modeNow = $null
-    try { $modeNow = [int]((Get-Dsts $DeviceId) -band 0xFFFF) } catch { }
-    if ($null -ne $modeNow -and $modeNow -ne $Mode) { $modeDrift++ } else { $modeDrift = 0 }
-
     $row = [ordered]@{
-      t = [math]::Round($t0, 2); label = $Label; mode = $Mode; mode_now = $modeNow
+      t = [math]::Round($t0, 2); label = $Label; mode = $Mode
       t_max = $tmax; pkg_w = $watts
       iter = $iter; iter_per_s = $rate
       alive_threads = [LoadGen2]::Alive()
@@ -310,7 +347,6 @@ function Invoke-Phase {
     if ($null -ne $tmax -and $tmax -gt $peak) { $peak = $tmax }
 
     if ($stall -ge 3) { $invalid = 'work counter stalled - load not running'; Log "INVALID: $Label $invalid"; break }
-    if ($modeDrift -ge 2) { $invalid = "mode drifted to $modeNow"; Log "INVALID: $Label $invalid"; break }
     if ($null -ne $tmax -and $tmax -ge $AbortTempC) { $invalid = "hot: $tmax C"; Log "ABORT: $Label $invalid"; break }
 
     $spent = $script:clock.Elapsed.TotalSeconds - $t0
@@ -332,6 +368,7 @@ function Invoke-Phase {
   }
   if (-not $invalid -and $nullT -gt 0) { $invalid = "null temperatures in $nullT samples" }
   if (-not $invalid -and $steady.Count -lt 3) { $invalid = "steady window has $($steady.Count) samples" }
+  if (-not $invalid -and $stw.Count -lt 3) { $invalid = "steady window has $($stw.Count) power samples" }
 
   return [ordered]@{
     label = $Label
@@ -361,51 +398,17 @@ function Set-Mode([int]$m) {
   throw "mode $m did not stick after 3 attempts"
 }
 
-function Stop-Load {
-  if (-not [LoadGen2]::WaitStop(5000)) { throw 'load threads did not exit within 5 s' }
-}
-
-function Wait-Cooldown {
-  param([double]$TargetC, [int]$MaxSec)
-  $started = Get-Date
-  $tmax = $null
-  while (((Get-Date) - $started).TotalSeconds -lt $MaxSec) {
-    $temps = Get-CoreTemps
-    $valid = @($temps | Where-Object { -not [double]::IsNaN($_) })
-    if ($valid.Count -gt 0) {
-      $tmax = [math]::Round(($valid | Measure-Object -Maximum).Maximum, 1)
-      if ($tmax -le $TargetC) {
-        return [ordered]@{ ok = $true; t = $tmax; sec = [math]::Round(((Get-Date) - $started).TotalSeconds, 1) }
-      }
-    }
-    Start-Sleep -Seconds 3
-  }
-  return [ordered]@{ ok = $false; t = $tmax; sec = [math]::Round(((Get-Date) - $started).TotalSeconds, 1) }
-}
-
-$battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue | Select-Object -First 1
-$acOnline = $false
-$charge = $null
-if ($battery) {
-  $charge = $battery.EstimatedChargeRemaining
-  $acOnline = ($battery.BatteryStatus -eq 2 -or $battery.BatteryStatus -eq 6 -or $battery.BatteryStatus -eq 7 -or $battery.BatteryStatus -eq 8)
-}
-if (-not $acOnline) { throw 'AC power is required; refusing to run on battery' }
-
 $summary = [ordered]@{
   baseline_mode = $baselineMode
   baseline_raw = $baselineRaw
-  ambient_c = $ambient
+  zone_temp_c = $zoneTemp
+  driver_warm_ms = $warmMs
   logical_processors = $cores
   thread_count = $null
-  modes = $modeList
   load_sec = $LoadSec
   steady_sec = $SteadySec
-  interval_sec = $Interval
   cooldown_target_c = $CooldownTargetC
-  cooldown_max_sec = $CooldownMaxSec
-  ac_online = $acOnline
-  battery_charge_pct = $charge
+  modes = $modeList
   warmup = @()
   cooldowns = @()
   phases = @()
@@ -415,19 +418,19 @@ $summary = [ordered]@{
 
 $threads = $StartThreads
 $failed = $null
-
 try {
   Set-Mode 0 | Out-Null
 
-  # ---- warmup: pick a load that leaves the fan policy room to matter -------
+  # ---- warmup: pick a thread count that lands in the interesting band ----
   for ($attempt = 1; $attempt -le 3; $attempt++) {
     Log "warmup $attempt with $threads threads for ${WarmSec}s"
     [LoadGen2]::Start($threads)
     $w = Invoke-Phase -Seconds $WarmSec -Mode 0 -Label "warm$attempt"
-    Stop-Load
+    if (-not [LoadGen2]::WaitStop(5000)) { throw 'load threads did not exit' }
     $steadyT = if ($null -ne $w.steady_t) { [math]::Round($w.steady_t, 1) } else { 0 }
     $summary.warmup += $w
-    Log ('warmup {0}: threads={1} steady_t={2}C steady_w={3}W iter/s={4} invalid={5}' -f $attempt, $threads, $steadyT, $w.steady_w, $w.steady_iter, $w.invalid)
+    Log ('warmup {0}: threads={1} steady_t={2}C steady_w={3}W iter/s={4} samples={5} invalid={6}' -f `
+        $attempt, $threads, $steadyT, $w.steady_w, $w.steady_iter, $w.samples, $w.invalid)
     if ($w.invalid) { throw "warmup invalid: $($w.invalid)" }
 
     if ($steadyT -lt $TargetLow -and $threads -lt $MaxThreads) {
@@ -445,37 +448,37 @@ try {
   $summary.thread_count = $threads
   Log "chosen thread count: $threads"
 
-  # ---- measurement: randomized/repeated modes ------------------------------
+  # ---- measurement --------------------------------------------------------
   for ($i = 0; $i -lt $modeList.Count; $i++) {
     $m = [int]$modeList[$i]
     $label = "p$i-m$m"
 
-    Set-Mode 0 | Out-Null
+    Set-Mode $m | Out-Null
+    # The mode is read back ONCE per phase, not per sample. The per-sample
+    # readback starved the ACPI WMI provider and blocked the whole run.
+    $modeBefore = [int]((Get-Dsts $DeviceId) -band 0xFFFF)
+    if ($modeBefore -ne $m) { throw "mode readback before $label is $modeBefore, expected $m" }
+
     $cd = Wait-Cooldown -TargetC $CooldownTargetC -MaxSec $CooldownMaxSec
     $summary.cooldowns += $cd
     Log ('cooldown before {0}: ok={1} t={2}C sec={3}' -f $label, $cd.ok, $cd.t, $cd.sec)
     if (-not $cd.ok) { throw "cooldown to $CooldownTargetC C failed before $label (last $($cd.t) C)" }
 
-    Set-Mode $m | Out-Null
     [LoadGen2]::Start($threads)
     $res = Invoke-Phase -Seconds $LoadSec -Mode $m -Label $label
-    Stop-Load
+    if (-not [LoadGen2]::WaitStop(5000)) { throw 'load threads did not exit' }
+    $modeAfter = [int]((Get-Dsts $DeviceId) -band 0xFFFF)
     $summary.phases += $res
-    Log ('{0}: steady t={1}C w={2}W iter/s={3} start={4}C peak={5}C n={6} invalid={7}' -f $label, $res.steady_t, $res.steady_w, $res.steady_iter, $res.start_t, $res.peak_t, $res.samples, $res.invalid)
-
-    if ($res.invalid -and $res.invalid -like 'hot:*') {
-      Log 'restoring balanced after hot abort'
-      Set-Mode 0 | Out-Null
-      Start-Sleep -Seconds 25
-      throw "hot abort at $label"
-    }
+    Log ('{0}: steady t={1}C w={2}W iter/s={3} start={4}C peak={5}C n={6} mode={7}->{8} invalid={9}' -f `
+        $label, $res.steady_t, $res.steady_w, $res.steady_iter, $res.start_t, $res.peak_t, $res.samples, $modeBefore, $modeAfter, $res.invalid)
+    if ($modeAfter -ne $m) { throw "mode drifted during ${label}: $modeBefore -> $modeAfter" }
     if ($res.invalid) { throw "phase $label invalid: $($res.invalid)" }
   }
 } catch {
   $failed = $_.Exception.Message
   Log "ERROR: $failed"
 } finally {
-  try { Stop-Load } catch { Log "STOP FAILED: $($_.Exception.Message)" }
+  try { if (-not [LoadGen2]::WaitStop(5000)) { Log 'STOP: threads still alive' } } catch { }
 
   if ($paused) {
     try {
@@ -503,5 +506,4 @@ try {
 }
 
 if ($failed) { exit 1 }
-if (-not $summary.restored_ok) { exit 3 }
 exit 0

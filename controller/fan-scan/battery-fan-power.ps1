@@ -141,6 +141,18 @@ $cores = [int](Get-CimInstance Win32_Processor | Measure-Object NumberOfLogicalP
 if ($cores -le 0) { $cores = 20 }
 $affType = [LibreHardwareMonitor.Hardware.GroupAffinity]
 
+# WARM THE DRIVER BEFORE THE CLOCK STARTS. The first affinity-scoped MSR
+# read pays the PawnIO initialisation cost - about 28 SECONDS on this
+# machine. Inside a measured phase it eats the whole steady window.
+$warmSw = [Diagnostics.Stopwatch]::StartNew()
+$warmEax = [uint32]0; $warmEdx = [uint32]0
+$warmGa = $affType::Single([uint16]0, 0)
+$null = $msr.ReadMsr([uint32]0x19C, [ref]$warmEax, [ref]$warmEdx, $warmGa)
+$warmV = [uint64]0
+$null = $msr.ReadMsr([uint32]0x611, [ref]$warmV)
+$warmMs = $warmSw.ElapsedMilliseconds
+Log "driver warm-up: ${warmMs} ms"
+
 function Get-CoreTemps {
   $out = New-Object 'double[]' $cores
   for ($i = 0; $i -lt $cores; $i++) {

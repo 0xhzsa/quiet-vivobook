@@ -1,0 +1,6 @@
+02:00:58.123 Add-Type -Path failed (non-fatal): Unable to load one or more of the requested types. Retrieve the LoaderExceptions property for more information.
+02:00:59.433 baseline raw=0x03030000 mode=0 zone=66.1C threads=20 tjmax=100 driver_warm=16ms
+02:00:59.492 watchdog started pid=21916 timeout=606s
+02:01:00.158 governor paused, stock scheme active
+02:11:06.190 watchdog: timeout reached, restoring id=0x00110019 value=50528256
+02:11:06.328 watchdog: RESTORED result=1
