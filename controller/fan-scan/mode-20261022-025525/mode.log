@@ -1,0 +1,33 @@
+02:55:28.350 Add-Type -Path failed (non-fatal): Unable to load one or more of the requested types. Retrieve the LoaderExceptions property for more information.
+02:55:29.630 baseline raw=0x03030000 mode=0 zone=66.1C threads=20 tjmax=100 driver_warm=11ms steady=50s
+02:55:29.682 watchdog started pid=11048 timeout=1692s
+02:55:30.138 governor paused, stock scheme active
+02:55:30.472 mode 0: attempt 1 write result=1 readback=0x03030000 applied=0
+02:55:30.481 warmup 1 with 10 threads for 60s
+02:56:47.123 warmup 1: threads=10 steady_t=66.1C steady_w=13.32W iter/s=942249.7 samples=11 invalid=
+02:56:55.147 warmup 2 with 12 threads for 60s
+02:58:01.501 warmup 2: threads=12 steady_t=65.4C steady_w=11.96W iter/s=1065191.5 samples=30 invalid=
+02:58:01.509 chosen thread count: 12
+02:58:01.599 AC state at start of measurement: ac
+02:58:01.838 mode 0: attempt 1 write result=1 readback=0x03030000 applied=0
+02:58:01.927 cooldown before p0-m0: ok=True t=66C sec=0
+02:59:48.981 p0-m0: steady t=73.35C w=16.48W iter/s=1086729.2 start=67C peak=94C n=46 mode=0->0 ac=ac invalid=
+02:59:49.203 mode 1: attempt 1 write result=1 readback=0x03030001 applied=1
+02:59:55.318 cooldown before p1-m1: ok=True t=63C sec=6.1
+03:01:37.230 p1-m1: steady t=69.58C w=12.19W iter/s=1046800.3 start=67C peak=74C n=48 mode=1->1 ac=ac invalid=
+03:01:37.459 mode 0: attempt 1 write result=1 readback=0x03030000 applied=0
+03:01:43.526 cooldown before p2-m0: ok=True t=65C sec=6
+03:03:28.175 p2-m0: steady t=71.59C w=16.13W iter/s=1067426 start=71C peak=84C n=46 mode=0->0 ac=ac invalid=
+03:03:28.400 mode 1: attempt 1 write result=1 readback=0x03030001 applied=1
+03:03:43.562 cooldown before p3-m1: ok=True t=66C sec=15.1
+03:05:29.022 p3-m1: steady t=75.09C w=15.29W iter/s=1057743 start=71C peak=88C n=47 mode=1->1 ac=ac invalid=
+03:05:29.266 mode 0: attempt 1 write result=1 readback=0x03030000 applied=0
+03:05:47.436 cooldown before p4-m0: ok=True t=66C sec=18.1
+03:07:31.053 p4-m0: steady t=69.52C w=11.74W iter/s=1061855.7 start=71C peak=89C n=43 mode=0->0 ac=ac invalid=
+03:07:31.287 mode 1: attempt 1 write result=1 readback=0x03030001 applied=1
+03:07:34.341 cooldown before p5-m1: ok=True t=64C sec=3
+03:09:17.204 p5-m1: steady t=71.64C w=13.6W iter/s=1058288.6 start=69C peak=78C n=46 mode=1->1 ac=ac invalid=
+03:09:17.846 governor resumed
+03:09:17.963 restored raw=0x03030000 ok=True
+03:09:18.106 watchdog: done flag present, standing down
+03:09:18.193 done

@@ -1,0 +1,170 @@
+{
+    "baseline_mode":  0,
+    "baseline_raw":  50528256,
+    "zone_temp_c":  66.1,
+    "driver_warm_ms":  11,
+    "ac_state":  "ac",
+    "logical_processors":  20,
+    "thread_count":  12,
+    "load_sec":  100,
+    "steady_sec":  50,
+    "cooldown_target_c":  66,
+    "modes":  [
+                  0,
+                  1,
+                  0,
+                  1,
+                  0,
+                  1
+              ],
+    "warmup":  [
+                   {
+                       "label":  "warm1",
+                       "mode":  0,
+                       "seconds":  60.3,
+                       "start_t":  62,
+                       "peak_t":  67,
+                       "steady_t":  66.1,
+                       "steady_w":  13.32,
+                       "steady_iter":  942249.7,
+                       "samples":  11,
+                       "null_t":  0,
+                       "invalid":  null
+                   },
+                   {
+                       "label":  "warm2",
+                       "mode":  0,
+                       "seconds":  61.8,
+                       "start_t":  65,
+                       "peak_t":  67,
+                       "steady_t":  65.44,
+                       "steady_w":  11.96,
+                       "steady_iter":  1065191.5,
+                       "samples":  30,
+                       "null_t":  0,
+                       "invalid":  null
+                   }
+               ],
+    "cooldowns":  [
+                      {
+                          "ok":  true,
+                          "t":  66,
+                          "sec":  0
+                      },
+                      {
+                          "ok":  true,
+                          "t":  63,
+                          "sec":  6.1
+                      },
+                      {
+                          "ok":  true,
+                          "t":  65,
+                          "sec":  6
+                      },
+                      {
+                          "ok":  true,
+                          "t":  66,
+                          "sec":  15.1
+                      },
+                      {
+                          "ok":  true,
+                          "t":  66,
+                          "sec":  18.1
+                      },
+                      {
+                          "ok":  true,
+                          "t":  64,
+                          "sec":  3
+                      }
+                  ],
+    "phases":  [
+                   {
+                       "label":  "p0-m0",
+                       "mode":  0,
+                       "seconds":  101.2,
+                       "start_t":  67,
+                       "peak_t":  94,
+                       "steady_t":  73.35,
+                       "steady_w":  16.48,
+                       "steady_iter":  1086729.2,
+                       "samples":  46,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   },
+                   {
+                       "label":  "p1-m1",
+                       "mode":  1,
+                       "seconds":  100.1,
+                       "start_t":  67,
+                       "peak_t":  74,
+                       "steady_t":  69.58,
+                       "steady_w":  12.19,
+                       "steady_iter":  1046800.3,
+                       "samples":  48,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   },
+                   {
+                       "label":  "p2-m0",
+                       "mode":  0,
+                       "seconds":  102.8,
+                       "start_t":  71,
+                       "peak_t":  84,
+                       "steady_t":  71.59,
+                       "steady_w":  16.13,
+                       "steady_iter":  1067426,
+                       "samples":  46,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   },
+                   {
+                       "label":  "p3-m1",
+                       "mode":  1,
+                       "seconds":  101,
+                       "start_t":  71,
+                       "peak_t":  88,
+                       "steady_t":  75.09,
+                       "steady_w":  15.29,
+                       "steady_iter":  1057743,
+                       "samples":  47,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   },
+                   {
+                       "label":  "p4-m0",
+                       "mode":  0,
+                       "seconds":  101.2,
+                       "start_t":  71,
+                       "peak_t":  89,
+                       "steady_t":  69.52,
+                       "steady_w":  11.74,
+                       "steady_iter":  1061855.7,
+                       "samples":  43,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   },
+                   {
+                       "label":  "p5-m1",
+                       "mode":  1,
+                       "seconds":  101.1,
+                       "start_t":  69,
+                       "peak_t":  78,
+                       "steady_t":  71.64,
+                       "steady_w":  13.6,
+                       "steady_iter":  1058288.6,
+                       "samples":  46,
+                       "null_t":  0,
+                       "invalid":  null,
+                       "ac_state":  "ac"
+                   }
+               ],
+    "restored_ok":  true,
+    "aborted":  null,
+    "restored_raw":  50528256,
+    "finished":  "2026-10-22T03:09:17.9797456+00:00"
+}
